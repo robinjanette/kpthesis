@@ -1,57 +1,85 @@
-\chapter{Background}
-This chapter aims to provide necessary background information in order to understand the remainder of this thesis. The first two sections describe the Perceptron algorithm and its descendant, the Kernel Perceptron algorithm. Next, the challenges and methods of formal verification of machine learning are discussed in sections 2.3 and 2.4. Finally, modifications of the Kernel Perceptron algorithm, such as Budget Kernel Perceptrons in section 2.5 and Description Kernel Perceptrons in section 2.6, are detailed as improvements for the Kernel Perceptron.
-\section{The Perceptron Algorithm}
+\chapter{Background}\label{BackgroundChapter}
+This chapter aims to provide necessary background information in order to understand the remainder of this thesis. Sections \ref{PerceptronSection} and \ref{KernelPerceptronSection} describe the Perceptron algorithm and its descendant, the Kernel Perceptron algorithm. Next, the challenges and methods of formal verification of machine learning are discussed in sections \ref{MLVerificationSection} and \ref{MLCertFrameworkSection}. Finally, modifications of the Kernel Perceptron algorithm, such as Budget Kernel Perceptrons in section \ref{BudgetKernelPerceptronSection} and Description Kernel Perceptrons in section \ref{DescriptionKernelPerceptronSection}, are detailed as improvements for the Kernel Perceptron.
+\section{The Perceptron Algorithm}\label{PerceptronSection}
 The Perceptron algorithm was initially published in 1957 by Frank Rosenblatt. Highly influential in the early growth and development of the field of artificial intelligence, the Perceptron \cite{Ros57} provided one of the first methods for computers to iteratively learn to classify data into discrete categories. In order to classify $n$-dimensional data, the Perceptron learns a weight vector with $n$ parameters as well as a bias term. Both the weight vector and bias consist of positive integers greater than or equal to zero which encode a linear hyperplane separating two or more categories in $n$-dimensional space.
-\\The most basic Perceptron algorithm has the following steps. Before training, each parameter in the weight vector $w$ is initialized to zero. The algorithm consists of two nested loops, as shown by the following pseudocode:
-\begin{lstlisting}
- Definition Perceptron (w:Params) (epochs:nat) (training_set:list (Label * Data)) :
- for i in epochs:
+
+\begin{figure}
+    \caption{Perceptron Pseudocode}
+    \label{PerceptronPseudo}
+    \begin{lstlisting}
+Definition Perceptron (w:Params) (epochs:nat) (training_set:list (Label * Data)) :
+for i in epochs:
     for j in size(training_set):
         (example, true_label) = training_set[j]
         predict = Predict(example, w)
         if predict != true_label:
             w = Update(w, training_set[j]).
-\end{lstlisting}
-For this algorithm, we require the weight vector, the number of epochs, and the training set as input. The training set consists of labeled training examples, where the label is either 0 or 1. The outer loop uses the number of epochs to control the number of iterations over the entire training set. The inner loop executes for every training example in the training set and has two main steps. First, the $n$-dimensional data inside the training example and the weight vector are used to calculate the Perceptron's predicted label for this example, without using the training example's true label. The calculation for Perceptron prediction takes as input the weight vector and a single training example to produce a predicted label for this example:
-\begin{lstlisting}
- Definition Predict (example:Data) (w:Params):
+    \end{lstlisting}
+\end{figure}
+
+The most basic Perceptron algorithm has the following steps. Before training, each parameter in the weight vector $w$ is initialized to zero. The algorithm consists of two nested loops, as shown by the pseudocode in Figure \ref{PerceptronPseudo}. For this algorithm, we require the weight vector, the number of epochs, and the training set as input. The training set consists of labeled training examples, where the label is either 0 or 1. The outer loop uses the number of epochs to control the number of iterations over the entire training set. The inner loop executes for every training example in the training set and has two main steps. First, the $n$-dimensional data inside the training example and the weight vector are used to calculate the Perceptron's predicted label for this example, without using the training example's true label. The calculation for Perceptron prediction is shown in pseudocode in Figure \ref{PerceptronPredictPseudo} takes as input the weight vector and a single training example to produce a predicted label for the given example.
+
+\begin{figure}
+    \caption{Perceptron Prediction Pseudocode}
+    \label{PerceptronPredictPseudo}
+    \begin{lstlisting}
+Definition Predict (example:Data) (w:Params):
     (bias, weight) = w 
     bias + dot_product(weight, example).
-\end{lstlisting}
+    \end{lstlisting}
+\end{figure}
+
 The true label and the calculated predicted label are then compared. If both labels are the same, the Perceptron correctly classified this training example. However, if the predicted label is different, the weight vector is updated using the example to improve classification over time. This update is the second step of the inner loop.
 \\The Perceptron algorithm is powerful despite its simplicity. However, there are limitations to the Perceptron's classification. The Perceptron cannot classify data that is not linearly separable with 100\% accuracy, such as points classified by the exclusive-OR function, a binary operator that returns TRUE when its two inputs are the opposite of each other. Despite the simplicity of exclusive-OR, the Perceptron cannot produce a model, or linear hyperplane, such that all the points classified by exclusive-OR as TRUE are also classified by the Perceptron as TRUE, and all the points classified by exclusive-OR as FALSE are also classified by the Perceptron as FALSE. The Perceptron can achieve at best 75\% accuracy for the exclusive-OR function. This restriction on the Perceptron caused the first AI Winter, a severe decline in artificial intelligence research, due to unreasonable expectations for the Perceptron in fields where data is not linearly separable.
 \\While the Perceptron is limited to classification of linearly separable data, the Perceptron Convergence Theorem states that the Perceptron is guaranteed to converge to a solution on linearly separable data. This property of the Perceptron algorithm was first proven on paper by Papert in 1961 \cite{Pap61} and Block in 1962 \cite{Blo62}. However, this proof was not verified by machine until 2017 through the work of Murphy, Gray, and Stewart \cite{MGS17} in the Coq proof assistant. 
-\section{The Kernel Perceptron}
+\section{The Kernel Perceptron}\label{KernelPerceptronSection}
 The Kernel Perceptron improved on the Perceptron algorithm with the introduction of the kernel trick by Aizerman, Braverman, and Rozoner \cite{ABR64}. Using kernel functions, the classification of the Perceptron can be expanded to include non-linearly separable data. There are four main modifications for the Kernel Perceptron: prediction, kernel functions, parameter space, and weight vector update. Prediction for the Kernel Perceptron uses kernel functions to produce non-linear hyperplanes instead of linear hyperplanes. Because of kernalization, the prediction function changes so that in addition to the weight vector $w$ and the current training example, the training set and training labels are required as well. The bias term is no longer necessary.
-\begin{lstlisting}
- Definition KernelPredict (example:Data) (w:KernelParams) 
+
+\begin{figure}
+    \caption{Kernel Perceptron Prediction Pseudocode}
+    \label{KernelPerceptronPredictPseudo}
+    \begin{lstlisting}
+Definition KernelPredict (example:Data) (w:KernelParams) 
         (training_set:list (Label * Data) (K:Kernel):
     for i in size(training_set):
         (label, data) = training_set[i]
         sum += w[i] * label * K(example, data)
     return sum.
-\end{lstlisting}
-In KernelPredict, $K$ represents an arbitrary kernel function. Kernel functions form a class of functions that take two examples as input and produce a single value. By using non-linear kernel functions, the Kernel Perceptron can classify data that is not linearly separable. For example, the Kernel Perceptron can classify the exclusive-OR function with 100\% accuracy
+    \end{lstlisting}
+\end{figure}
+
+In the pseudocode KernelPredict function shown in Figure \ref{KernelPerceptronPredictPseudo}, $K$ represents an arbitrary kernel function. Kernel functions form a class of functions that take two examples as input and produce a single value. By using non-linear kernel functions, the Kernel Perceptron can classify data that is not linearly separable. For example, the Kernel Perceptron can classify the exclusive-OR function with 100\% accuracy
 using a quadratic kernel. 
 \\By using kernel functions in prediction, the parameters used by the Kernel Perceptron have different cardinality compared to the parameters of the Perceptron. The Kernel Perceptron requires one parameter per training example for its classification, regardless of the dimensionality of the data. Therefore, the size of the weight vector is dependent on the size of the training set. 
-\\Finally, the weight vector update for the Kernel Perceptron is somewhat different from that of the Perceptron. When a training example is misclassified by the Kernel Perceptron, its parameter is incremented and the rest of the weight vector is unchanged. The full Kernel Perceptron algorithm is as follows:
-\begin{lstlisting}
- Definition KernelPerceptron (w:KernelParams) (epochs:nat) 
+\\Finally, the weight vector update for the Kernel Perceptron is somewhat different from that of the Perceptron. When a training example is misclassified by the Kernel Perceptron, its parameter is incremented and the rest of the weight vector is unchanged. The full Kernel Perceptron algorithm is shown in Figure \ref{KernelPerceptronPseodo}.
+
+\begin{figure}
+    \caption{Kernel Perceptron Pseudocode}
+    \label{KernelPerceptronPseodo}
+    \begin{lstlisting}
+Definition KernelPerceptron (w:KernelParams) (epochs:nat)
         (training_set:list (Label * Data)) (K:Kernel):
- for i in epochs:
+for i in epochs:
     for j in size(training_set):
         (example, true_label) = training_set[j]
         predict = KernelPredict(example, w, training_set, K)
         if predict != true_label:
             w = Update(w, j).
-\end{lstlisting}
+    \end{lstlisting}
+\end{figure}
+
 The Kernel Perceptron improves upon the Perceptron, but the Kernel Perceptron has its own limitations. The size of the parameter space for the Kernel Perceptron limits its usefulness in applications where memory is at a premium, as the size of the weight vector is dependent on the number of training examples, not the dimensionality of the training data. Also, the Kernel Perceptron, due to the use of kernel functions, is not guaranteed to converge to a solution or terminate, unlike the Perceptron algorithm. This means that the Perceptron Convergence Theorem cannot be used to prove the correctness of an implementation of the Kernel Perceptron.
-\section{Approaches to Machine Learning Verification}
+\section{Approaches to Machine Learning Verification}\label{MLVerificationSection}
 Verifying machine learning algorithms is a difficult problem in software engineering. Machine learning algorithms can produce thousands or millions of parameters in their models, which interact to classify data. The learning process for machine learning models can be tedious for humans to trace, and the model parameters generated during training are often not human-interpretable for manual verification of correctness. The authors of \cite{BF16} describe how machine learning researchers do not agree on a standard definition of what human interpretability is or how models should be able to be interpreted by humans. Interpretability varies between algorithms and tends to be more difficult for neural algorithms, including the Perceptron family of algorithms. Some formal verification in the field of machine learning has been performed, as shown by \cite{TD05}, but many algorithms have not been verified correct. Even for implementations with paper proofs of correctness, few have been proven correct by machine.
-\section{MLCert Framework}
+\section{MLCert Framework}\label{MLCertFrameworkSection}
 To facilitate the verification of machine learning algorithms, Bagnall and Stewart developed MLCert \cite{BS19}, an open-source tool built in the Coq proof assistant. MLCert employs generalization error to prove correctness for machine learning algorithms. Generalization error, as described by Levin, Tishby, and Solla \cite{LTS90}, is an important indicator for the robustness of a machine learning model; algorithms with low generalization error can generalize from the training examples used in training to correctly classify unseen examples from the same domain of data in testing. Instead of trying to verify the model directly, MLCert verifies the generalization bounds for machine learning implementations built in its framework. Bounds on the generalization error indicate that an algorithm has bounds on mistakes made during testing, and the size of the parameter space contributes heavily to the tightness of the generalization bounds. Verified generalization bounds guarantee worst-case performance for a model. Previous work in the MLCert framework \cite{BS19} has resulted in an implementation of the Perceptron algorithm with proofs to verify its generalization bounds. However, to the best of our knowledge, no one has implemented the Kernel Perceptron in Coq or formally proven its correctness of generalization bounds using machine-checked proofs.
 \\The parameter space for the Kernel Perceptron is dependent on the number of training examples. This means that, as compared to the Perceptron algorithm, the Kernel Perceptron has very loose generalization bounds due to the increased size of the parameter space. The tightness of the generalization bounds matters because tighter bounds provide a stronger guarantee for performance. To tighten the generalization bounds of the Kernel Perceptron, one approach is to limit the number of parameters.
-\section{Budget Kernel Perceptron Algorithms}
-\section{Description Kernel Perceptrons}
-\section{Chapter Summary}
-
+\section{Budget Kernel Perceptron Algorithms}\label{BudgetKernelPerceptronSection}
+Budget Kernel Perceptrons are a family of algorithms which modify the Kernel Perceptron to limit the size of the parameters for the model while minimizing the impact on the accuracy of the model. Budget Kernel Perceptrons are often employed in areas where computer memory or resources are at a premium, and their modifications are customized for the requirements of their field. One strategy for Budget Kernel Perceptrons is to keep a set number of training examples for classification called support vectors, which specific rules for updating this set over time to maintain its size as the classification boundary changes. For the base Kernel Perceptron algorithm described in Section \ref{KernelPerceptronSection}, every training example is a support vector. An example of a budget update rule is described in the article ``Tracking the best hyperplane with a simple budget Perceptron'', where the authors describe an update procedure where one support vector is selected at random for each replacement \cite{CCBG07}. Another update rule is to always select the oldest support vector for replacement, as this support vector may no longer be necessary for correct classification. 
+\\Other strategies minimize the impact of removed support vectors through more creative means. Dekel, Shalev-Shwartz, and Singer present the Forgetron, where each support vector is ``forgotten'' over time by decreasing its impact on the model, which means that there is always an oldest support vector to be removed with the least influence on the model \cite{DSSS07}. The authors of \cite{CKS03} compute the distance of each support vector from the classification hyperplane and remove the support vector with the greatest distance. Finally, the Projectron and Projectron++ algorithms described by \cite{OKC09} store both a support set and a projection onto the support set to reduce the overall size of the model. All these methods balance model size with increased classification error compared to the base Kernel Perceptron.
+\\Of these studies, only Cramer, Kandola, and Singer \cite{CKS03} provide paper proofs of their Budget Kernel Perceptron's generalization bounds. The nature and function of Budget Kernel Perceptrons complements our research in proving generalization error for machine learning algorithms. By implementing a Budget Kernel Perceptron, the bounds on the size of the parameter space can improve the bounds on generalization error compared to the base Kernel Perceptron algorithm.
+\section{Description Kernel Perceptrons}\label{DescriptionKernelPerceptronSection}
+In contrast to Budget Kernel Perceptrons, another method of encoding the Kernel Perceptron parameters involves description-length bounds. During training, the Kernel Perceptron will make the set number of mistakes, bounded by some value $L$. Using $L$, the number of support vectors is less than or equal to the number of mistakes, which will always be less than or equal to the size of the training set. This method requires a record of every misclassification made during training. Only training examples that were misclassified are included in the set of support vectors and used to calculate the hyperplane.
+\\Description-length bounds describe the process of training, as each misclassification is recorded in order to produce and change the hyperplane. Instead of fixing the size of the support vectors on an arbitrary value, description-length bounds alow for every misclassification to be represented, while excluding training examples that are never misclassified and therefore not essential for the model. The generalization error for a Kernel Perceptron using description-length bounds is dependent on the number of misclassifications, which provides a bound on the size of the parameter space.
+\section{Chapter Summary}\label{BackgroundChapterSummarySection}
+This chapter summarizes the background of this thesis, discussing the Perceptron and Kernel Perceptron algorithms, as well as variants of the Kernel Perceptron algorithm with improved generalization bounds. Chapter 3 will next describe my extensions to the MLCert framework to implement three Kernel Perceptron algorithms: the base Kernel Perceptron algorithm, a Budget Kernel Perceptron, and a Description Kernel Perceptron, with generalization proofs for each implementation written in Coq.
