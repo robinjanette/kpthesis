@@ -1,0 +1,65 @@
+\usepackage{listings}
+\lstdefinelanguage{myC}{
+  language=C,
+  basicstyle=\ttfamily\singlespacing,
+  showspaces=false,              
+  showstringspaces=false,        
+  showtabs=false,    
+  tabsize=2,                      % sets default tabsize to 2 spaces
+  captionpos=b,                   % sets the caption-position to bottom
+  breaklines=true,                % sets automatic line breaking
+  breakatwhitespace=false,
+  escapeinside={\%*}{*)},        
+  keywordstyle=\bfseries\color{black},    % keyword style
+  numberstyle=\tiny\color{gray},
+%  numbers=left,
+%  frame=single,                  % adds a frame around the code
+%  rulecolor=\color{black},
+%  stepnumber=1,                 
+%  numbersep=5pt,                
+%  backgroundcolor=\color{white}, 
+%  commentstyle=\color{dkgreen},  % comment style
+%  stringstyle=\color{mauve},     % string literal style
+}
+% A version of the above myC, but without singlespacing
+\lstdefinelanguage{myinlineC}{
+  language=myC,
+  basicstyle=\ttfamily
+}
+\renewcommand{\ttdefault}{pcr}    % enables bold monospaced font
+\lstdefinelanguage[x86gasm]{Assembler}[x86masm]{Assembler}{%
+,basicstyle=\ttfamily\singlespacing
+,morekeywords={rax,rbx,rcx,rdx,rip,rdi,rsi,rsp,subq,decl,movq
+              ,movl,xorl,imull,popq,popl,pushl}%
+,morekeywords=[2]{.file,.section,.string,.text,.globl,.cfi_startproc
+                 ,.cfi_def_cfa_offset,.cfi_endproc,.size,.ident}%
+}
+\lstdefinelanguage{Coq}{
+,morekeywords={match,end,Definition,Inductive,Lemma,Theorem,Record,
+               Variable,Hypothesis,Section,End,case,of,if,then,else,Let,
+               is,let,in,do,return,with,Extract,Constant,Inlined,Inline,
+               Extraction,Fixpoint,Program,Function,Fix,type,Class,for}%
+,keywordstyle=\bfseries\color{MidnightBlue}
+,basicstyle=\sffamily
+,columns=fullflexible
+,numberstyle=\tiny\color{gray}
+%,escapeinside={@}{@}
+,literate=
+    {:=}{{$\defeq\;$}}1
+    {<-}{{$\leftarrow\;$}}1
+    {=>}{{$\Rightarrow\;$}}1
+    {->}{{$\rightarrow\;$}}1
+    {<->}{{$\leftrightarrow\;$}}1
+    {<==}{{$\leq\;$}}1
+    {\\/}{{$\vee\;$}}1
+    {/\\}{{$\land\;$}}1
+    {fun\ }{{$\lambda$\ }}1
+    {forall}{{$\forall$}}1
+    {exists}{{$\exists$}}1
+    {Z}{{$\mathbb{Z}$}}1
+    {Z0}{{$\mathbb{Z}_0$}}1
+    {<=}{{$\leq\;$}}1
+    {>=}{{$\geq\;$}}1
+    {<>}{{$\neq\;$}}1
+    {Q}{{$\mathbb{Q}$}}1                    
+}

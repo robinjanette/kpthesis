@@ -1,0 +1,11 @@
+main.tex
+*.aux
+*.dvi
+*.log
+*.blg
+*.bbl
+*.toc
+*.lof
+*.lot
+*.out
+*.synctex.gz

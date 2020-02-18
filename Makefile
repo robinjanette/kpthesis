@@ -2,8 +2,8 @@
 # Default LaTeX makefile
 # Samuel Jero <sj323707@ohio.edu>
 ###############################################################################
-TEXFILE:=template
-OUTPUT:=template.pdf
+TEXFILE:=kpthesis
+OUTPUT:=kpthesis.pdf
 
 
 all: pdf

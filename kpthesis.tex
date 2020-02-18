@@ -34,7 +34,10 @@
 \usepackage{graphicx} % Standard package to incorporate graphics
 \usepackage[printonlyused]{acronym} % Provides a method for incorporating 
                                     % acronyms and building an acronym list
+\include{listingconfig}
+\lstset{language=Coq}
 \usepackage{natbib}
+\usepackage[usenames,dvipsnames,svgnames,table]{xcolor} 
 
 \graphicspath{{figures/}} % Allows graphics files to be stored in a
                           % separate directory
@@ -103,11 +106,11 @@ Dedicated to my Nathan. \\ Your patience, video games, and good cooking kept me 
 %% that case, the files would be loaded here using "\input{filename}"
 
 \input{Introduction.tex}
-\input{Background.tex} 
+\input{Background.tex}  
 \chapter{Methods}
 \chapter{Results} 
 \chapter{Conclusions}
-\cite{CCBG07}
+\cite{CCBG07} 
 \cite{DSSS07}
 \cite{CKS03} 
 \cite{OKC09}
