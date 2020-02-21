@@ -92,7 +92,7 @@ Dedicated to my Nathan. \\ Your patience, video games, and good cooking kept me 
 %% can be forced into singlespaced text by inserting "\setlength\itemsep{0pt}
 %% \setlength\parskip{0pt}" into the "acronym" environment.} 
 
-% \notables  % Prevent a list of tables from being created
+ \notables  % Prevent a list of tables from being created
 % \nofigures % Prevent a list of figures from being created
 
 \begin{document} 
@@ -107,9 +107,18 @@ Dedicated to my Nathan. \\ Your patience, video games, and good cooking kept me 
 
 \input{Introduction.tex}
 \input{Background.tex}
-\chapter{Methods}
-\chapter{Results} 
-\chapter{Conclusions}
+\input{Methods.tex}
+\chapter{Proofs and Experimental Results}\label{ResultsChapter}
+Blurb about what this chapter is about
+\section{Kernel Perceptron Generalization Proofs}\label{KPProofs}
+\section{Kernel Perceptron Haskell Extraction}\label{KPHaskell}
+\section{Budget Kernel Perceptron Generalization Proofs}\label{KPBProofs}
+\section{Budget Kernel Perceptron Haskell Extraction}\label{KPBHaskell}
+\section{Description Kernel Perceptron Generalization Proofs}\label{KPDProofs}
+\section{Description Kernel Perceptron Haskell Extraction}\label{KPDHaskell}
+\section{Chapter Summary}\label{ResultsChapterSummarySection}
+\chapter{Conclusions}\label{ConclusionsChapter}
+
 
 %% The \references command marks the point where the bibliography will
 %% be inserted.  In the example below, the BibTeX commands are
