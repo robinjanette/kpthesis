@@ -1,10 +1,70 @@
 \chapter{Proofs and Experimental Results}\label{ResultsChapter}
-Blurb about what this chapter is about 
-\section{Kernel Perceptron Generalization Proofs}\label{KPProofs}
-\section{Kernel Perceptron Haskell Extraction}\label{KPHaskell}
-\section{Budget Kernel Perceptron Generalization Proofs}\label{KPBProofs}
-\section{Budget Kernel Perceptron Haskell Extraction}\label{KPBHaskell}
-\section{Description Kernel Perceptron Generalization Proofs}\label{KPDProofs}
-\section{Description Kernel Perceptron Haskell Extraction}\label{KPDHaskell}
+The results of my research consist of proofs and experimental performance for the implementations described in Chapter \ref{MethodsChapter}. This chapter consists of two sections, one for generalization proofs and the other describing extraction and performance. The Kernel Perceptron results can be found in sections \ref{KPProofs} and \ref{KPHaskell}. Sections \ref{KPBProofs} and \ref{KPBHaskell} provide the Budget Kernel Perceptron results. Finally, the Description Kernel Perceptron results are located in sections \ref{KPDProofs} and \ref{KPDHaskell}. The conclusions and future work for this research follow in Chapter \ref{ConclusionsChapter}.
+\section{Generalization Proofs}\label{Proofs}
+In the MLCert framework, much of the proof burden has been automated. For a new Learner representing a machine learning algorithm, there are two new lemmas that need to be proved. The first lemma proves the cardinality of the parameters used by the algorithm, which corresponds to the size of the parameter space. The second lemma applies the first in order to prove a generalization bound for the Learner as a whole. An example of the second lemma for a generic Learner is shown in Figure \ref{LearnerLemma}.
+
+\begin{figure}
+    \caption{Generalization Bound for a generic Learner}
+    \label{LearnerLemma}
+    \begin{lstlisting}
+Lemma Learner_bound eps (eps_gt0 : 0 < eps) init : 
+    @main A B Params Hypers Learner
+      hypers m m_gt0 epochs d eps init (fun _ => 1) <=
+    #|Params| * exp (-2%R * eps^2 * mR m).
+    \end{lstlisting}
+\end{figure}
+
+The definition of main which is used in Figure \ref{LearnerLemma} can be found in the file ``learners.v''. Once main has been instantiated with the specifics of the Learner, such as its particular Params and Hypers, there are proofs in ``learners.v'' such as the lemma main\_bound which provide the machinery necessary to prove this inequality over the real numbers. As described by Bagnall and Stewart \cite{BS19}, MLCert uses Hoeffding's inequality, a type of Chernoff bound, to prove the generalization bound for a Learner. In the following subsections, the lemmas proving the generalization bounds for the Kernel Perceptron, Budget Kernel Perceptron, and Description Kernel Perceptron will be discussed.
+\subsection{Kernel Perceptron Generalization Proofs}\label{KPProofs}
+The bound for the Kernel Perceptron relies on the size of the parameter space. As proven in the lemma K\_card\_Params in the section KernelPerceptronGeneralization, the cardinality of the parameters for the Kernel Perceptron is shown in Equation \ref{KPParams}. This power of 2 is calculated by unfolding the definition of Params, which consists of the training set and a float array of size m. As all values are floating point numbers stored in 32 bits, the cardinality of a single floating point number is $2^{32}$. Therefore, as the dimensions of the training set are equal to m training examples multiplied by n dimensions, the cardinality of the training set is equal to $2^{m*n*32}$. The cardinality of a float array of size m is $2^{m * 32}$. 
+
+\begin{equation} \label{KPParams}
+ \#|Params| = 2^{(m*n*32 + m*32)}
+\end{equation}
+
+Kcard\_Params is central to the proof of the generalization bounds of the Kernel Perceptron in the lemma KPerceptron\_bound, which is defined in Figure \ref{KPLemma}. The generalization bound for the Kernel Perceptron is very loose, as growth in the size of the training set causes exponential growth in the generalization error. This limits the usefulness of the Kernel Perceptron's generalization bound, as a loose generalization bound provides few guarantees for performance or correctness. However, the Kernel Perceptron bound allows for comparison between this result and the generalization bounds for the Budget Kernel Perceptron and the Description Kernel Perceptron. 
+
+\begin{figure}
+    \caption{Generalization Bound for the Kernel Perceptron}
+    \label{KPLemma}
+    \begin{lstlisting}
+Lemma Kperceptron_bound eps (eps_gt0 : 0 < eps) init : 
+    @main A B Params KernelPerceptron.Hypers 
+      (@KernelPerceptron.Learner n m KPsupport_vectors H K)
+      hypers m m_gt0 epochs d eps init (fun _ => 1) <=
+    2^(m*n*32 + m*32) * exp (-2%R * eps^2 * mR m).
+    \end{lstlisting}
+\end{figure}
+
+\subsection{Budget Kernel Perceptron Generalization Proofs}\label{KPBProofs}
+The Budget Kernel Perceptron has a similar bound on the cardinality of the parameter space. However, the parameter space for the Budget Kernel Perceptron is not dependent on m, the size of the training set, whatsoever. Instead, the parameter space relies on (S sv), which is the size of the support set. The successor of sv is used to denote the size of the support set so that the budget update procedure is always possible regardless of the value of sv, as there will be at least one support vector able to be replaced.
+\\Like the Kernel Perceptron, the Budget Kernel Perceptron stores the support set and a float array. The float array is of size (S sv), so its cardinality is $2^{32 * (S sv)}$. The support set stores (S sv) training examples, which consist of one float value for each of the n dimensions of the data, plus a Boolean value for the label of the support vector. Therefore, the cardinality of each training example in the support set is $2^{1 + n * 32}$. The full cardinality of the Budget Kernel Perceptron Params is given in Equation \ref{KPBParams}. The lemma proving this bound is found in the section KernelPerceptronGeneralizationBudget, named Kcard\_Params\_Budget.
+
+\begin{equation} \label{KPBParams}
+ \#|Params| = 2^{((32*(S sv) + ((1 + n * 32)*(S sv))))}
+\end{equation}
+
+Figure \ref{KPBLemma} shows the lemma for the generalization bound of the Budget Kernel Perceptron, which uses Kcard\_Params\_Budget in its proof. Comparing the bound of the Budget Kernel Perceptron to the Kernel Perceptron, the overall structure of the two bounds is similar when the number of training examples is the same. However, because the support set can be significantly smaller than the number of training examples, the Budget Kernel Perceptron's bound is tighter than that of the base Kernel Perceptron. 
+%TODO Mathematical analysis of bound to show tighter bound.
+
+\begin{figure}
+    \caption{Generalization Bound for the Budget Kernel Perceptron}
+    \label{KPBLemma}
+    \begin{lstlisting}
+Lemma Kperceptron_bound_budget eps (eps_gt0 : 0 < eps) init : 
+    @main A B Params KernelPerceptronBudget.Hypers 
+      (@KernelPerceptronBudget.Learner n sv F K U)
+      hypers m m_gt0 epochs d eps init (fun _ => 1) <=
+    INR 2^((32*(S sv) + ((1 + n * 32)*(S sv)))) * exp (-2%R * eps^2 * mR m).
+    \end{lstlisting}
+\end{figure}
+
+\subsection{Description Kernel Perceptron Generalization Proofs}\label{KPDProofs}
+This is a placeholder until the Description Kernel Perceptron is implemented.
+\section{Haskell Performance}\label{HaskellExtraction}
+\subsection{Kernel Perceptron Haskell Extraction}\label{KPHaskell}
+\subsection{Budget Kernel Perceptron Haskell Extraction}\label{KPBHaskell}
+\subsection{Description Kernel Perceptron Haskell Extraction}\label{KPDHaskell}
+This is a placeholder until the Description Kernel Perceptron is implemented.
 \section{Chapter Summary}\label{ResultsChapterSummarySection}
-\chapter{Conclusions}\label{ConclusionsChapter}
+These results from the implementations of the Kernel Perceptron, Budget Kernel Perceptron, and Description Kernel Perceptron demonstrate that the generalization error for the Kernel Perceptron can be improved through limiting the size of the support set or placing a limit on the number of mistakes made during training. The conclusions drawn from these results are described in Chapter \ref{ConclusionsChapter}, along with a discussion of future work to be done in the field of machine learning verification.
