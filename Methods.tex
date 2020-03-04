@@ -1,7 +1,156 @@
 \chapter{Methods}\label{MethodsChapter}
-Blurb about what this chapter is about
+In this chapter, I will describe my methods for implementing the Kernel Perceptron, Budget Kernel Perceptron, and Description Kernel Perceptron in the MLCert framework. First, Section \ref{MLCertStruct} describes the pipeline in MLCert for building the specifications of machine learning algorithms. Next, Sections \ref{KPCoqImp}, \ref{KPBCoqImp}, and \ref{KPDCoqImp} outline the Coq modules for each implementation, which consist of a prediction module and an module for the entire algorithm. The Coq modules for the proofs of these implementations and their extraction to Haskell follows in Chapter \ref{ResultsChapter}.
 \section{Structure of Perceptron Implementations in MLCert}\label{MLCertStruct}
+The MLCert framework provides data structures and proofs that can be instantiated with the specifics of a machine learning algorithm, as well as extraction directives which facilitate the process of extracting Coq code to Haskell for execution. MLCert requires four sections in Coq for the complete implementation of a machine learning algorithm. Before discussing the four required sections, I will first give the structure and type signature MLCert uses to encode a machine learning algorithm. This module is located in the file ``learners.v'':
+
+\begin{figure}
+    \caption{Learner Module}
+    \label{LearnerDef}
+    \begin{lstlisting}
+Module Learner.
+Record t (X Y Hypers Params : Type) :=
+  mk { predict : Hypers -> Params -> X -> Y;
+       update : Hypers -> X*Y -> Params -> Params }.
+End Learner.
+    \end{lstlisting}
+\end{figure}
+
+The Learner module defines the general form of parameters and functions for machine learning algorithms. Four types are listed in the definition of Learner.t: X, Y, Hypers, and Params. X is the type of the training data, and Y is the type of the training labels. The type of hyperparameters is Hypers, and finally the type of parameters is Params. These four types are used to define the type signatures for the required predict and update functions. A prediction function requires Hypers, Params, and a training example of type X to return the predicted label of type Y. The update function requires Hypers, an example paired with its label, and Params to return updated Params. This module will later be instantiated with specific types and functions to implement the Perceptron family of algorithms. 
+\\This format is not universal for all machine learning algorithms. For example, unsupervised learning algorithms do not use training labels, as with the k-means clustering algorithm. Because the predict function is meant to return a predicted label as classification, unsupervised algorithms would not be able to be implemented using Learner.t. However, Learner.t is sufficient for implementing the Perceptron family of algorithms because Perceptrons are supervised, using labeled training data, and rely on prediction and update for their classification.
+\\When implementing a machine learning algorithm, the first required Coq section implements the prediction function according to the type signature of the predict function in Learner.t. The second section defines the update function for the machine learning algorithm, as well as instantiating Learner.t with the specific types, prediction, and update functions for the algorithm. This second section is directly used by the third and fourth section. Generalization proofs in the third section prove the cardinality of the Params used by the algorithm as well as the generalization bounds for the entire algorithm. Finally, the fourth Coq section defines how the algorithm should be extracted, a process which translates the algorithm in Coq to the functional language Haskell for experimental results. The rest of this chapter describes the first two Coq sections for each implementation.
 \section{Kernel Perceptron Coq Implementation}\label{KPCoqImp}
+The Kernel Perceptron implementation in MLCert is located in the file ``kernelperceptron.v''. Section KernelClassifier contains the predict function for the Kernel Perceptron. The definition of kernel\_predict is shown below:
+
+\begin{figure}
+    \caption{kernel\_predict function in KernelClassifier}
+    \label{kernel_predictDef}
+    \begin{lstlisting}
+Definition kernel_predict (K : float32_arr n -> float32_arr n -> float32) 
+        (w : KernelParams) (x : Ak) : Bk :=
+    let T := w.1 in 
+      foldable_foldM
+        (fun xi_yi r =>
+           let: ((i, xi), yi) := xi_yi in
+           let: (j, xj) := x in 
+           let: wi := f32_get i w.2 in 
+           r + (float32_of_bool yi) * wi * (K xi xj))
+        0 T > 0.
+    \end{lstlisting}
+\end{figure}
+
+The kernel\_predict function takes three inputs: a kernel function K, the current Kernel Perceptron parameters w, and an example x of type Ak. The type of training data is defined in KernelClassifier as an index paired with an array of floating point values of size n. The type of labels Bk is defined as Boolean. In the kernel\_predict function, the kernel function can be specified for one of several kernel functions. KernelClassifier contains two kernel functions corresponding to the linear and quadratic kernels, as shown in Figure \ref{kernelfunctionsDef}.
+
+\begin{figure}
+    \caption{Kernel functions in KernelClassifier}
+    \label{kernelfunctionsDef}
+    \begin{lstlisting}
+Definition linear_kernel {n} (x y : float32_arr n) : float32 :=
+      f32_dot x y.
+Definition quadratic_kernel (x y : float32_arr n) : float32 :=
+      (f32_dot x y) ** 2.
+    \end{lstlisting}
+\end{figure}
+
+The KernelParams for the Kernel Perceptron are defined as the training set paired with a float array of size m, where m is the number of training examples. In the basic Kernel Perceptron, every training example in the training set is a support vector. The float array in KernelParams is used for the kernel\_predict calculation of the training example x's label, as each float value corresponds to a support vector. The kernel\_predict function folds over the support vectors in KernelParams so that for each support vector, the result of the kernel function applied to the support vector and x is multiplied with the float value for the support vector and the label for the support vector. The result of this calculation is compared with zero to return the predicted Boolean label for x. 
+\\The Coq section KernelPerceptron completes the Kernel Perceptron implementation, containing the kernel\_update function and instantiating Learner.t with the Kernel Perceptron parameters and functions. The kernel\_update function is defined in Figure \ref{kernel_updateDef}. Using the kernel\_predict function and kernel function K, kernel\_update compares the predicted label to the actual label. If the predicted label is correct, the parameters p are returned without change. However, if the predicted label is incorrect, the float array is updated so that the float value for that training example is incremented by 1. 
+
+\begin{figure}
+    \caption{kernel\_update function in KernelPerceptron}
+    \label{kernel_updateDef}
+    \begin{lstlisting}
+Definition kernel_update 
+      (K : float32_arr n -> float32_arr n -> float32)
+          (h:Hypers) (example_label:A*B) (p:Params) : Params :=
+      let: ((i, example), label) := example_label in 
+      let: predicted_label := kernel_predict K p (i, example) in
+      if Bool.eqb predicted_label label then p
+      else (p.1, f32_upd i (f32_get i p.2 + 1) p.2).
+    \end{lstlisting}
+\end{figure}
+
+With kernel\_update implemented, Learner.t can be instantiated with the necessary types and functions. As the Kernel Perceptron does not use hyperparameters in its algorithm, the type Hypers is defined as the empty record. The Kernel Perceptron Learner can be defined as follows in Figure \ref{kpLearnerDef}. This Learner definition is used in the other two Kernel Perceptron sections which will be discussed in Sections \ref{KPProofs} and \ref{KPHaskell}.
+
+\begin{figure}
+    \caption{Learner Definition in KernelPerceptron}
+    \label{kpLearnerDef}
+    \begin{lstlisting}
+Definition Learner : Learner.t A B Hypers Params :=
+    Learner.mk
+        (fun _ => @kernel_predict n m support_vectors F K)
+        (kernel_update K).
+    \end{lstlisting}
+\end{figure}
+
 \section{Budget Kernel Perceptron Coq Implementation}\label{KPBCoqImp}
+The Budget Kernel Perceptron is also located in the file ``kernelperceptron.v'' in MLCert. The predict function is located in the section KernelClassifierBudget, and modifies the Kernel Perceptron predict function so that a budget on the size of the set of support vectors can be enforced. In KernelClassifierBudget, the variable sv is the size of the support set. As opposed to the KernelParams which contain the entire training set and a float array, the parameters for the Budget Kernel Perceptron are built as an axiomatized vector of size sv containing support vectors paired with a float value for that support vector. The definition of the type of support vectors and the type of the support set are given in Figure \ref{KPBsupportDef}. 
+
+\begin{figure}
+    \caption{Support Vector Definitions in KernelClassifierBudget}
+    \label{KPBsupportDef}
+    \begin{lstlisting}
+Definition bsupport_vector: Type := Akb * Bkb.
+Definition bsupport_vectors: Type := AxVec sv (float32 * (bsupport_vector)).
+    \end{lstlisting}
+\end{figure}
+
+The predict function for the Budget Kernel Perceptron shown in Figure \ref{kernel_predict_budgetDef} is very similar to Kernel Perceptron prediction, with the main difference being the size of the support set. Again, the kernel function K used in prediction can be specified as any kernel function with the correct type signature. Like kernel\_predict, kernel\_predict\_budget folds over the support set with the same calculation as in kernel\_predict. However, the type of the training data, Akb, is different for the Budget Kernel Perceptron. Akb is defined as a float array of size n, which is the dimensionality of the data, and does not include an index for that example as it is not necessary for Budget classification.
+
+\begin{figure}
+    \caption{kernel\_predict\_budget function in KernelClassifierBudget}
+    \label{kernel_predict_budgetDef}
+    \begin{lstlisting}
+Definition kernel_predict_budget
+        (w: bsupport_vectors)
+        (x: Akb) : Bkb :=
+    foldable_foldM
+        (fun wi_xi r =>
+           let: (wi, (xi, yi)) := wi_xi in 
+           r + (float32_of_bool yi) * wi * (K xi x))
+        0 w > 0.
+    \end{lstlisting}
+\end{figure}
+
+The Budget Kernel Perceptron implementation is located in the module KernelPerceptronBudget, and this module contains several functions necessary for the budget update rule to maintain the size of the support set. The update rule for the Budget Kernel Perceptron is more complex than for the Kernel Perceptron. If the current example has been misclassified, we first need to determine if this example is already a support vector. If the example is a support vector, then the float value associated with this support vector should be incremented by one. However, if this example is not a support vector, then we need to add this example to the support set and remove a support vector. As discussed in Section \ref{BudgetKernelPerceptronSection}, there are several methods for selecting the support vector to be removed. In our implementation, we choose the oldest support vector, as removing this support vector will likely have the least impact on the decision hyperplane. When a new example is added to the support set, it is added on to the front of the vector, while the support vector at the end of the vector is removed. This replacement procedure ensures that the oldest support vector is always stored at the end of the vector for safe removal. The logic for the kernel budget update rule is defined in the function budget\_update shown in Figure \ref{budget_updateDef}. In the update function for the Budget Kernel Perceptron called kernel\_update shown in Figure \ref{kernel_update_budgetDef}, the update rule used is given as an argument to kernel\_update so that the budget update rule can be changed. 
+
+\begin{figure}
+    \caption{budget\_update function in KernelPerceptronBudget}
+    \label{budget_updateDef}
+    \begin{lstlisting}
+Definition budget_update (p: Params) (yj: A*B): Params :=
+    if existing p yj then upd_weights p yj.1
+    else add_new p yj.
+    \end{lstlisting}
+\end{figure}
+
+
+\begin{figure}
+    \caption{kernel\_update function in KernelPerceptronBudget}
+    \label{kernel_update_budgetDef}
+    \begin{lstlisting}
+Definition kernel_update 
+    (K : float32_arr n -> float32_arr n -> float32)
+          (h:Hypers) (example_label:A*B) (p:Params) : Params :=
+    let: (example, label) := example_label in 
+    let: predicted_label := kernel_predict_budget K p example in
+    if Bool.eqb predicted_label label then p
+    else (U p example_label).
+    \end{lstlisting}
+\end{figure}
+
+Finally, Learner.t can be instantiated using kernel\_predict\_budget and kernel\_update. No hyperparameters are used for the Budget Kernel Perceptron, again implemented as the empty record. Figure \ref{kpbLearnerDef} shows the Budget Kernel Perceptron's Learner definition that is used in the proof and extraction sections of \ref{KPBProofs} and \ref{KPBHaskell}, respectively.
+
+\begin{figure}
+    \caption{Learner Definition in KernelPerceptronBudget}
+    \label{kpbLearnerDef}
+    \begin{lstlisting}
+Definition Learner : Learner.t A B Hypers Params :=
+    Learner.mk
+        (fun _ => @kernel_predict_budget n (S sv) K F)
+        (kernel_update K).
+    \end{lstlisting}
+\end{figure}
+
 \section{Description Kernel Perceptron Coq Implementation}\label{KPDCoqImp}
+This is a placeholder until the Description Kernel Perceptron is implemented.
 \section{Chapter Summary}\label{MethodsChapterSummarySection}
+This chapter describes the implementation of the Kernel Perceptron, Budget Kernel Perceptron, and Description Kernel Perceptron in Coq. Each of the sections for these algorithms conform to the specifications given by the module Learner.t to ensure that these implementations can be proved to have generalization bounds and extracted to Haskell, which will be discussed in Chapter \ref{ResultsChapter}. 
