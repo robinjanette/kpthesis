@@ -68,7 +68,7 @@ Definition kernel_update
     \end{lstlisting}
 \end{figure}
 
-With kernel\_update implemented, Learner.t can be instantiated with the necessary types and functions. As the Kernel Perceptron does not use hyperparameters in its algorithm, the type Hypers is defined as the empty record. The Kernel Perceptron Learner can be defined as follows in Figure \ref{kpLearnerDef}. This Learner definition is used in the other two Kernel Perceptron sections which will be discussed in Sections \ref{KPProofs} and \ref{KPHaskell}.
+With kernel\_update implemented, Learner.t can be instantiated with the necessary types and functions. As the Kernel Perceptron does not use hyperparameters in its algorithm, the type Hypers is defined as the empty record. The Kernel Perceptron Learner can be defined as follows in Figure \ref{kpLearnerDef}. This Learner definition is used in the other two Kernel Perceptron sections which will be discussed in Sections \ref{KPProofs} and \ref{DetailsHaskellExtraction}.
 
 \begin{figure}
     \caption{Learner Definition in KernelPerceptron}
@@ -137,7 +137,7 @@ Definition kernel_update
     \end{lstlisting}
 \end{figure}
 
-Finally, Learner.t can be instantiated using kernel\_predict\_budget and kernel\_update. No hyperparameters are used for the Budget Kernel Perceptron, again implemented as the empty record. Figure \ref{kpbLearnerDef} shows the Budget Kernel Perceptron's Learner definition that is used in the proof and extraction sections of \ref{KPBProofs} and \ref{KPBHaskell}, respectively.
+Finally, Learner.t can be instantiated using kernel\_predict\_budget and kernel\_update. No hyperparameters are used for the Budget Kernel Perceptron, again implemented as the empty record. Figure \ref{kpbLearnerDef} shows the Budget Kernel Perceptron's Learner definition that is used in the proof and extraction sections of \ref{KPBProofs} and \ref{DetailsHaskellExtraction}, respectively.
 
 \begin{figure}
     \caption{Learner Definition in KernelPerceptronBudget}
