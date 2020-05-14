@@ -151,6 +151,77 @@ Definition Learner : Learner.t A B Hypers Params :=
 \end{figure}
 
 \section{Description Kernel Perceptron Coq Implementation}\label{KPDCoqImp}
-This is a placeholder until the Description Kernel Perceptron is implemented.
+
+The Description Kernel Perceptron is the final implementation located in ``kernelperceptron.v''. Many of its functions and definitions modify the Budget Kernel Perceptron, as both implementations use a fixed number of support vectors less than the number of training examples. The first major change for the Description Kernel Perceptron is the definition of its parameters. Figure \ref{KPDsupportDef} lists the definitions necessary to create dparams, the Description parameters. The definition of support vectors is the same as for the Budget Kernel Perceptron, relying on Akd and Bkd, which define the type of training examples and labels, respectively. However, the set of support vectors, dsupport\_vectors, is simply an axiomatized vector containing des support vectors, where des is the maximum number of misclassifications. The parameters for the Description Kernel Perceptron are the set of support vectors paired with a float32 value, which keeps track of the number of misclassifications.
+
+\begin{figure}
+    \caption{Parameter Definition in KernelClassifierDes}
+    \label{KPDsupportDef}
+    \begin{lstlisting}
+Definition dsupport_vector: Type := Akd * Bkd.
+Definition dsupport_vectors: Type := AxVec des dsupport_vector.
+Definition dparams: Type := float32 * dsupport_vectors.
+    \end{lstlisting}
+\end{figure}
+
+Prediction for the Description Kernel Perceptron is also very similar to the Budget Kernel Perceptron, but the calculation is simpler. The kernel\_predict\_des function is shown in Figure \ref{kernel_predict_desDef}. There are no float32 values paired with individual support vectors in dparams, as each support vector has the same weight. The reason for this will be shown in the kernel\_update\_des function. Once the float32 value is separated from the set of support vectors, the calculation over the support vectors is the same as the Budget Kernel Perceptron.
+
+\begin{figure}
+    \caption{kernel\_predict\_des function in KernelClassifierDes}
+    \label{kernel_predict_desDef}
+    \begin{lstlisting}
+Definition kernel_predict_des
+               (aw: dparams)
+               (x: Akd) : Bkd :=
+      let (a, w) := aw in
+      foldable_foldM
+        (fun wi_xi r =>
+           let: (xi, yi) := wi_xi in 
+           r + (float32_of_bool yi) * (K xi x))
+        0 w > 0.
+    \end{lstlisting}
+\end{figure}
+
+The update procedure for the Description Kernel Perceptron is likewise simplified from the Budget Kernel Perceptron. The Description Kernel Perceptron can make up to des mistakes. When a misclassification occurs, the float32 value in dparams is compared to a hyperparameter alpha, which is set to the maximum number of misclassifications. If the Description Kernel Perceptron has already made the maximum number of mistakes, then the parameters are not updated for the rest of training. However, if the float32 value is not equal to the alpha hyperparameter, then the des\_update function runs using the current parameters and the misclassified example. As described in Figure \ref{des_updateDef}, the des\_update function increments the float32 value by 1 to update the number of misclassifications. The misclassified example is added onto the front of the support set, and another example is removed. The parameters are initialized with des zero vectors, and as misclassfications occur, these zero vectors are replaced. For this update procedure, if an example is misclassified multiple times, multiple copies of the support vector will be added to the support set. This is why all support vectors have the same weight in prediction. The full Description Kernel Perceptron is in \ref{kernel_update_desDef}.
+
+\begin{figure}
+    \caption{des\_update function in KernelPerceptronDes}
+    \label{des_updateDef}
+    \begin{lstlisting}
+Definition des_update (ap: Params) (yj: A*B): Params :=      
+    let (a, p) := ap in
+    ((f32_add f32_1 a), (AxVec_cons yj) (AxVec_init p)).
+    \end{lstlisting}
+\end{figure}
+
+\begin{figure}
+    \caption{kernel\_update function in KernelPerceptronDes}
+    \label{kernel_update_desDef}
+    \begin{lstlisting}
+Definition kernel_update 
+    (K : float32_arr n -> float32_arr n -> float32)
+        (h:Hypers) (example_label:A*B) (ap:Params) : Params :=
+    let: (example, label) := example_label in
+    let: (a, p) := ap in 
+    let: predicted_label := kernel_predict_des K ap example in
+    if Bool.eqb predicted_label label then ap
+    else if f32_eq a (alpha h) then ap
+        else des_update ap example_label.
+    \end{lstlisting}
+\end{figure}
+
+Using these definitions, a Learner instantiation can be created, as shown in Figure \ref{kpdLearnerDef}.
+
+\begin{figure}
+    \caption{Learner Definition in KernelPerceptronDes}
+    \label{kpdLearnerDef}
+    \begin{lstlisting}
+Definition Learner : Learner.t A B Hypers Params :=
+    Learner.mk
+        (fun _ => @kernel_predict_des n (S des) K F')
+        (@kernel_update K).
+    \end{lstlisting}
+\end{figure}
+
 \section{Chapter Summary}\label{MethodsChapterSummarySection}
 This chapter describes the implementation of the Kernel Perceptron, Budget Kernel Perceptron, and Description Kernel Perceptron in Coq. Each of the sections for these algorithms conform to the specifications given by the module Learner.t to ensure that these implementations can be proved to have generalization bounds and extracted to Haskell, which will be discussed in Chapter \ref{ResultsChapter}. 

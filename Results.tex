@@ -45,7 +45,6 @@ The Budget Kernel Perceptron has a similar bound on the cardinality of the param
 \end{equation}
 
 Figure \ref{KPBLemma} shows the lemma for the generalization bound of the Budget Kernel Perceptron, which uses Kcard\_Params\_Budget in its proof. Comparing the bound of the Budget Kernel Perceptron to the Kernel Perceptron, the overall structure of the two bounds is similar when the number of training examples is the same. However, because the support set can be significantly smaller than the number of training examples, the Budget Kernel Perceptron's bound is tighter than that of the base Kernel Perceptron. 
-%TODO Mathematical analysis of bound to show tighter bound.
 
 \begin{figure}
     \caption{Generalization Bound for the Budget Kernel Perceptron}
@@ -60,7 +59,27 @@ Lemma Kperceptron_bound_budget eps (eps_gt0 : 0 < eps) init :
 \end{figure}
 
 \subsection{Description Kernel Perceptron Generalization Proofs}\label{KPDProofs}
-This is a placeholder until the Description Kernel Perceptron is implemented.
+
+The generalization bound for the Description Kernel Perceptron is similar to that of the Budget Kernel Perceptron. First, we must define the cardinality of the parameter space used by the Description Kernel Perceptron. The parameters store a single float32 value paired with (S des) support vectors. The successor of des is used as the size of the support set, so that support vector replacement is always possible. Like with the Budget Kernel Perceptron, the cardinality of each support vector in the support set is $2^{1 + n * 32}$, which stores a single Boolean label as well as $n$ 32-bit floating point values. However, because there is not a float value for every support vector, only the cardinality of a single float32 must be added to the cardinality of the entire support set. The cardinality of the Description parameters is shown in Equation \ref{KPDParams}.
+
+\begin{equation} \label{KPDParams}
+ \#|Params| = 2^{((32 + ((1 + n * 32)*(S des))))}
+\end{equation}
+
+Figure \ref{KPDLemma} shows the generalization bound of the Description Kernel Perceptron in the lemma Kperceptron\_bound\_Des. This bound is similar to the bound of the Budget Kernel Perceptron, but is tighter because there is only one float32 value instead of a float32 value per support vector. This small difference means that if the budget is the same as the number of mistakes, the Description Kernel Perceptron will have a slightly tighter bound. 
+
+\begin{figure}
+    \caption{Generalization Bound for the Description Kernel Perceptron}
+    \label{KPDLemma}
+    \begin{lstlisting}
+Lemma Kperceptron_bound_Des eps (eps_gt0 : 0 < eps) init : 
+    @main A B Params KernelPerceptronDes.Hypers 
+      (@KernelPerceptronDes.Learner n des F K)
+      hypers m m_gt0 epochs d eps init (fun _ => 1) <=
+    INR 2 ^ (32 + (1 + n * 32) * (S des)) * exp (-2%R * eps^2 * mR m).
+    \end{lstlisting}
+\end{figure}
+
 \section{Haskell Extraction and Performance Experiments}\label{HaskellExtractionPerformance}
 In order for the Coq implementations to be run, these implementations must be extracted to Haskell. The file ``extraction\_hs.v'' contains extraction directives for Haskell so that some Coq functions and data structures are extracted properly. The last Coq module for each implementation uses the extractible\_main definition, found in ``learners.v'', to also provide the necessary machinery that Learner.t relies on. The extracted Coq code is written to a Haskell file located in the directory hs in MLCert.
 \\The extracted Haskell code for a machine learning algorithm does not contain code to initialize the system with training and testing data or functions to display accuracy and generalization error results to the user. Unverified Haskell drivers have been written for these implementations, which include the extracted Haskell code as a module. The Haskell drivers for the Kernel Perceptron implementations can also be found in the hs/ directory.
