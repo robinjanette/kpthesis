@@ -95,18 +95,249 @@ The extraction directives for the Kernel Perceptron can be found in the section 
 A synthetic dataset was created specifically to test the performance of the Kernel Perceptron and its variants. There are twenty independent trials in this dataset with training and testing sets based on randomly generated data separated by a randomly oriented linear hyperplane. Each trial contains a thousand training examples and a thousand test examples, each with three dimensions. These datasets were created by recording and formatting the output of twenty runs of KPerceptronTest.hs. 
 \\Because the Kernel Perceptron variants are all deterministic, the generalization error results were found using the RunFile driver for each implementation. All implementations ran for 5 epochs. The Budget Kernel Perceptron limited the size of the support set to one hundred examples, 10\% of the training set, and the Description Kernel Perceptron was similarly limited to one hundred mistakes. 
 \\Generalization error results
-\\Timing results
+
+\begin{figure}[h]\label{SyntheticGenErrFig}
+ \caption{Synthetic Generalization Error}
+ \includegraphics[scale=0.9]{SyntheticGenErr}
+\end{figure}
+
+\begin{table}[h!]
+ \begin{center}
+  \caption{Average Synthetic Generalization Error and Confidence Intervals}
+  \label{tab:avesyntheticaccgen}
+  \begin{tabular}{l|c|c|c}
+  \textbf{ } & \textbf{Kernel Perceptron} & \textbf{Budget KP} & \textbf{Description KP}\\
+  \hline
+  \textbf{Average Training Accuracy} & 98.61\% & 98.61\% & 96.915\%\\
+  \textbf{Average Testing Accuracy} & 98.58\% & 98.58\% & 96.87\%\\
+  \textbf{Average Generalization Error} & 0.39\% & 0.39\% & 0.565\%\\
+  \textbf{95\% Confidence Interval} & 0.001435352 & 0.001435352 & 0.001539834\\
+  \end{tabular}
+ \end{center}
+\end{table}
+
+\begin{table}[h!]
+ \begin{center}
+  \caption{Synthetic Generalization Bound Calculations}
+  \label{tab:syntheticgencalc}
+  \begin{tabular}{l|c|c|c}
+  \textbf{ } & \textbf{Kernel Perceptron} & \textbf{Budget KP} & \textbf{Description KP}\\
+  \hline
+  \textbf{Training Examples} & 1000 & 1000 & 1000\\
+  \textbf{Dimensionality} & 3 & 3 & 3\\
+  \textbf{Support Vectors} & 1000 & 100 & 100\\
+  \textbf{eps = 0} & 6.90947E+38531 & 1.93617E+3883 & 4.20647E+2929\\
+  \textbf{eps = 1} & 1.78025E+37663 & 4.98862E+3014 & 1.08381E+2061\\
+  \end{tabular}
+ \end{center}
+\end{table}
+
+\begin{figure}[h]\label{SyntheticGenErr2Fig}
+ \caption{Synthetic Generalization Error using Limited Budget and Mistakes}
+\end{figure}
+
+\begin{table}[h!]
+ \begin{center}
+  \caption{Synthetic Generalization Error and Confidence Intervals using Limited Budget and Mistakes}
+  \label{tab:syntheticlimitedgen}
+  \begin{tabular}{l|c|c}
+  \textbf{ } & \textbf{Budget KP} & \textbf{Description KP}\\
+  \hline
+  \textbf{Training Examples} & 1000 & 1000\\
+  \textbf{Dimensionality} & 3 & 3\\
+  \textbf{Support Vectors} & 2 & 2\\
+  \textbf{eps} & 0.301 & 0.282\\
+  \hline
+  \textbf{Calculated Bound} & 9.35\% & 9.10\%\\
+  \textbf{Greatest Observed Generalization Error} & 5.7\% & 4.8\%\\
+  \hline
+  \textbf{Average Training Accuracy} & 76.89\% & 78.625\%\\
+  \textbf{Average Testing Accuracy} & 76.6\% & 78.11\%\\
+  \textbf{Average Generalization Error} & 1.79\% & 1.805\%\\
+  \textbf{95\% Confidence Interval} & 0.005794861 & 0.007007097\\
+  \end{tabular}
+ \end{center}
+\end{table}
+
+Timing results
+
+\begin{figure}[h]\label{SyntheticKernelTiming}
+ \caption{Kernel Perceptron Synthetic Timing}
+ \includegraphics[scale=0.9]{KernelSyntheticTiming}
+\end{figure}
+
+\begin{figure}[h]\label{SyntheticBudgetDesTiming}
+ \caption{Budget and Description Kernel Perceptron Synthetic Timing}
+ \includegraphics[scale=0.9]{BudgetDesSyntheticTiming}
+\end{figure}
+
+\begin{table}[h!]
+ \begin{center}
+  \caption{Synthetic Average Runtimes and Confidence Intervals}
+  \label{tab:synthetictiming}
+  \begin{tabular}{l|c|c|c|c|c|c}
+  \textbf{Trial} & \textbf{KP} & \textbf{95\% CI} & \textbf{Budget KP} & \textbf{95\% CI} & \textbf{Description KP} & \textbf{95\% CI}\\
+  \hline
+  \textbf{1} & 199.943 & 3.17258 & 0.3498 & 0.05499 & 0.2946 & 0.05606\\
+  \textbf{2} & 202.025 & 2.44561 & 0.3436 & 0.05116 & 0.2938 & 0.05499\\
+  \textbf{3} & 202.145 & 2.78125 & 0.345 & 0.05245 & 0.2932 & 0.05529\\
+  \textbf{4} & 200.901 & 2.62953 & 0.3456 & 0.05263 & 0.294 & 0.05441\\
+  \textbf{5} & 202.012 & 2.97056 & 0.3468 & 0.05351 & 0.2946 & 0.05557\\
+  \textbf{6} & 201.786 & 2.46189 & 0.3504 & 0.05567 & 0.2944 & 0.05666\\
+  \textbf{7} & 199.996 & 2.66681 & 0.3484 & 0.05175 & 0.2934 & 0.05422\\
+  \textbf{8} & 201.455 & 3.07707 & 0.3532 & 0.05527 & 0.295 & 0.05440\\
+  \textbf{9} & 201.362 & 2.92524 & 0.3482 & 0.05479 & 0.2936 & 0.05558\\
+  \textbf{10} & 202.546 & 2.92950 & 0.3502 & 0.05332 & 0.2938 & 0.05452\\
+  \textbf{11} & 200.051 & 2.58570 & 0.3502 & 0.05332 & 0.2942 & 0.05432\\
+  \textbf{12} & 200.609 & 3.10256 & 0.3486 & 0.05215 & 0.294 & 0.05537\\
+  \textbf{13} & 200.479 & 3.28990 & 0.3492 & 0.05331 & 0.2948 & 0.05647\\
+  \textbf{14} & 203.655 & 3.41870 & 0.3444 & 0.05226 & 0.2934 & 0.05323\\
+  \textbf{15} & 202.866 & 4.18980 & 0.3462 & 0.05384 & 0.294 & 0.05489\\
+  \textbf{16} & 201.827 & 3.75820 & 0.358 & 0.05232 & 0.295 & 0.05587\\
+  \textbf{17} & 200.627 & 3.80374 & 0.3492 & 0.05333 & 0.2942 & 0.05528\\
+  \textbf{18} & 202.409 & 3.09442 & 0.3492 & 0.05381 & 0.2938 & 0.05450\\
+  \textbf{19} & 201.203 & 2.51938 & 0.3476 & 0.05410 & 0.2938 & 0.05646\\
+  \textbf{20} & 201.605 & 2.93406 & 0.3498 & 0.05351 & 0.295 & 0.05442\\
+  \end{tabular}
+ \end{center}
+\end{table}
+
 \subsection{Iris Dataset Performance Results}\label{IrisResults}
 Description of Dataset
 \\Experimental setup and drivers
 \\Generalization error results
-\\Timing results
+
+\begin{table}[h!]
+ \begin{center}
+  \caption{Iris 50/50 Dataset Observed and Calculated Generalization Error}
+  \label{tab:iris50gencalc}
+  \begin{tabular}{l|c|c|c}
+  \textbf{ } & \textbf{Kernel Perceptron} & \textbf{Budget KP} & \textbf{Description KP}\\
+  \hline
+  \textbf{Training Examples} & 77 & 77 & 77\\
+  \textbf{Testing Examples} & 73 & 73 & 73\\
+  \textbf{Dimensionality} & 4 & 4 & 4\\
+  \textbf{Support Vectors} & 77 & 7 & 7\\
+  \hline
+  \textbf{Training Accuracy} & 100\% & 100\% & 100\%\\
+  \textbf{Testing Accuracy} & 100\% & 100\% & 100\%\\
+  \textbf{Generalization Error} & 0\% & 0\% & 0\%\\
+  \hline
+  \textbf{eps = 0} & 3.08721E+3036 & 6.76217E+271 & 1.07728E+214\\
+  \textbf{eps = 1} & 4.05710E+2969 & 8.88660E+204 & 1.41572E+147\\
+  \end{tabular}
+ \end{center}
+\end{table}
+
+\begin{table}[h!]
+ \begin{center}
+  \caption{Iris 75/25 Dataset Observed and Calculated Generalization Error}
+  \label{tab:iris75gencalc}
+  \begin{tabular}{l|c|c|c}
+  \textbf{ } & \textbf{Kernel Perceptron} & \textbf{Budget KP} & \textbf{Description KP}\\
+  \hline
+  \textbf{Training Examples} & 113 & 113 & 113\\
+  \textbf{Testing Examples} & 37 & 37 & 37\\
+  \textbf{Dimensionality} & 4 & 4 & 4\\
+  \textbf{Support Vectors} & 113 & 11 & 11\\
+  \hline
+  \textbf{Training Accuracy} & 100\% & 100\% & 100\%\\
+  \textbf{Testing Accuracy} & 100\% & 100\% & 100\%\\
+  \textbf{Generalization Error} & 0\% & 0\% & 0\%\\
+  \hline
+  \textbf{eps = 0} & 4.19104E+5442 & 1.33083E+533 & 6.23051E+436\\
+  \textbf{eps = 1} & 2.96325E+2969 & 9.40956E+434 & 4.40525E+338\\
+  \end{tabular}
+ \end{center}
+\end{table}
+
+Timing results
+
+\begin{figure}[h]\label{IrisTiming}
+ \caption{Iris Data Set Timing}
+ \includegraphics[scale=0.9]{IrisTiming}
+\end{figure}
+
+\begin{table}[h!]
+ \begin{center}
+  \caption{Iris Average Runtimes and Confidence Intervals}
+  \label{tab:iristabtiming}
+  \begin{tabular}{l|c|c|c|c|c|c}
+  \textbf{Trial} & \textbf{KP} & \textbf{95\% CI} & \textbf{Budget KP} & \textbf{95\% CI} & \textbf{Description KP} & \textbf{95\% CI}\\
+  \hline
+  \textbf{Iris 50/50} & 0.0872 & 0.00342 & 0.005 & 0.00392 & 0.0042 & 0.00431\\
+  \textbf{Iris 75/25} & 0.2208 & 0.00563 & 0.0076 & 0.00462 & 0.0068 & 0.00501\\
+  \end{tabular}
+ \end{center}
+\end{table}
+
 \subsection{Sonar Mines vs. Rocks Dataset Performance Results}\label{SonarResults}
 Description of Dataset
 \\Data normalization
 \\Experimental setup and drivers
 \\Generalization error results
-\\Timing results
+
+\begin{table}[h!]
+ \begin{center}
+  \caption{Sonar 50/50 Dataset Observed and Calculated Generalization Error}
+  \label{tab:sonar50gencalc}
+  \begin{tabular}{l|c|c|c}
+  \textbf{ } & \textbf{Kernel Perceptron} & \textbf{Budget KP} & \textbf{Description KP}\\
+  \hline
+  \textbf{Training Examples} & 116 & 116 & 116\\
+  \textbf{Testing Examples} & 92 & 92 & 92\\
+  \textbf{Dimensionality} & 60 & 60 & 60\\
+  \textbf{Support Vectors} & 116 & 11 & 11\\
+  \textbf{Epochs} & 10,000 & 10,000 & 10,000\\
+  \hline
+  \textbf{Training Accuracy} & 100\% & 55.17\% & 55.17\%\\
+  \textbf{Testing Accuracy} & 69.57\% & 51.09\% & 51.09\%\\
+  \textbf{Generalization Error} & 30.43\% & 4.08\% & 4.08\%\\
+  \hline
+  \textbf{eps = 0} & 6.66773E+68162 & 1.06512E+6467 & 4.98653E+6370\\
+  \textbf{eps = 1} & Would not compute & 1.86671E+6366 & 8.73934E+6269\\
+  \end{tabular}
+ \end{center}
+\end{table}
+
+\begin{table}[h!]
+ \begin{center}
+  \caption{Sonar 75/25 Dataset Observed and Calculated Generalization Error}
+  \label{tab:sonar75gencalc}
+  \begin{tabular}{l|c|c|c}
+  \textbf{ } & \textbf{Kernel Perceptron} & \textbf{Budget KP} & \textbf{Description KP}\\
+  \hline
+  \textbf{Training Examples} & 157 & 157 & 157\\
+  \textbf{Testing Examples} & 51 & 51 & 51\\
+  \textbf{Dimensionality} & 60 & 60 & 60\\
+  \textbf{Support Vectors} & 157 & 15 & 15\\
+  \textbf{Epochs} & 10,000 & 10,000 & 10,000\\
+  \hline
+  \textbf{Training Accuracy} & 84.08\% & 54.14\% & 54.78\%\\
+  \textbf{Testing Accuracy} & 82.35\% & 50.98\% & 50.98\%\\
+  \textbf{Generalization Error} & 1.73\% & 3.16\% & 3.8\%\\
+  \hline
+  \textbf{eps = 0} & 7.18772E+92254 & 4.71762E+8818 & 6.49060E+8683\\
+  \textbf{eps = 1} & Would not compute & 2.01955E+8682 & 2.77855E+8547\\
+  \end{tabular}
+ \end{center}
+\end{table}
+
+Timing results
+
+\begin{table}[h!]
+ \begin{center}
+  \caption{Sonar Average Runtimes and Confidence Intervals}
+  \label{tab:sonartabtiming}
+  \begin{tabular}{l|c|c|c|c|c|c}
+  \textbf{Trial} & \textbf{KP} & \textbf{95\% CI} & \textbf{Budget KP} & \textbf{95\% CI} & \textbf{Description KP} & \textbf{95\% CI}\\
+  \hline
+  \textbf{Sonar 50/50} & 1045.839 & 1.49470 & 79.0278 & 2.06799 & 66.1688 & 1.28507\\
+  \textbf{Sonar 75/25} & 2121.471 & 6.43889 & 138.6656 & 4.08308 & 121.6616 & 3.08207\\
+  \end{tabular}
+ \end{center}
+\end{table}
+
 \subsection{Discussion of Generalization Error and Timing Results}\label{ResultsDiscussion}
 \section{Chapter Summary}\label{ResultsChapterSummarySection}
 These results from the implementations of the Kernel Perceptron, Budget Kernel Perceptron, and Description Kernel Perceptron demonstrate that the generalization error for the Kernel Perceptron can be improved through limiting the size of the support set or placing a limit on the number of mistakes made during training. The conclusions drawn from these results are described in Chapter \ref{ConclusionsChapter}, along with a discussion of future work to be done in the field of machine learning verification.
