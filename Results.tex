@@ -14,7 +14,7 @@ Lemma Learner_bound eps (eps_gt0 : 0 < eps) init :
     \end{lstlisting}
 \end{figure}
 
-The definition of main which is used in Figure \ref{LearnerLemma} can be found in the file ``learners.v''. Once main has been instantiated with the specifics of the Learner, such as its particular Params and Hypers, there are proofs in ``learners.v'' such as the lemma main\_bound which provide the machinery necessary to prove this inequality over the real numbers. As described by Bagnall and Stewart \cite{BS19}, MLCert uses Hoeffding's inequality, a type of Chernoff bound, to prove the generalization bound for a Learner. In the following subsections, the lemmas proving the generalization bounds for the Kernel Perceptron, Budget Kernel Perceptron, and Description Kernel Perceptron will be discussed.
+The definition of main which is used in Figure \ref{LearnerLemma} can be found in the file ``learners.v''. Once main has been instantiated with the specifics of the Learner, such as its particular Params and Hypers, there are proofs in ``learners.v'' such as the lemma main\_bound which provide the machinery necessary to prove this inequality over the real numbers. As described by Bagnall and Stewart \cite{BS19}, MLCert uses Hoeffding's inequality, a type of Chernoff bound, to prove the generalization bound for a Learner. The value eps is the difference between expected accuracy and empirical accuracy, which is a probability between 0 and 1. The specific value of eps is chosen to ensure that the resulting bound is also a probability, as a bound greater than 1 is no longer useful for bounding generalization error. In the following subsections, the lemmas proving the generalization bounds for the Kernel Perceptron, Budget Kernel Perceptron, and Description Kernel Perceptron will be discussed.
 \subsection{Kernel Perceptron Generalization Proofs}\label{KPProofs}
 The bound for the Kernel Perceptron relies on the size of the parameter space. As proven in the lemma K\_card\_Params in the section KernelPerceptronGeneralization, the cardinality of the parameters for the Kernel Perceptron is shown in Equation \ref{KPParams}. This power of 2 is calculated by unfolding the definition of Params, which consists of the training set and a float array of size m. As all values are floating point numbers stored in 32 bits, the cardinality of a single floating point number is $2^{32}$. Therefore, as the dimensions of the training set are equal to m training examples multiplied by n dimensions, the cardinality of the training set is equal to $2^{m*n*32}$. The cardinality of a float array of size m is $2^{m * 32}$. 
 
@@ -94,19 +94,21 @@ The extraction directives for the Kernel Perceptron can be found in the section 
 \subsection{Synthetic Dataset Performance Results}\label{SyntheticResults}
 A synthetic dataset was created specifically to test the performance of the Kernel Perceptron and its variants. There are twenty independent trials in this dataset with training and testing sets based on randomly generated data separated by a randomly oriented linear hyperplane. Each trial contains a thousand training examples and a thousand test examples, each with three dimensions. These datasets were created by recording and formatting the output of twenty runs of KPerceptronTest.hs. 
 \\Because the Kernel Perceptron variants are all deterministic, the generalization error results were found using the RunFile driver for each implementation. All implementations ran for 5 epochs. The Budget Kernel Perceptron limited the size of the support set to one hundred examples, 10\% of the training set, and the Description Kernel Perceptron was similarly limited to one hundred mistakes. 
-\\Generalization error results
+\\The generalization error of the three implementations is graphed in Figure \ref{SyntheticGenErrFig}. The Kernel Perceptron and Budget Kernel Perceptron have the same training and testing error for all twenty synthetic trials, while the Description Kernel Perceptron tends to have slightly worse training and testing accuracy and increased generalization error on some trials. The greatest observed generalization error is 1.4\% for the Description Kernel Perceptron in Trial 8.
 
 \begin{figure}[h]\label{SyntheticGenErrFig}
  \caption{Synthetic Generalization Error}
  \includegraphics[scale=0.9]{SyntheticGenErr}
-\end{figure}
+\end{figure}'
+
+Table \ref{tab:avesyntheticaccgen} provides statistics across the synthetic trials for average training and testing accuracy and generalization error, along with the 95\% confidence interval for each implementation. Because the Kernel Perceptron and Budget Kernel Perceptron had the same performance across all trials, their averages and confidence interval are the same. The Description Kernel Perceptron's averages reflect its tendency to have lower accuracy and increased generalization error, and its confidence interval is larger than the other two implementations. For many of these trials, the Description Kernel Perceptron would require several more mistakes to have the same performance as the Kernel Perceptron and Budget Kernel Perceptron.
 
 \begin{table}[h!]
  \begin{center}
   \caption{Average Synthetic Generalization Error and Confidence Intervals}
   \label{tab:avesyntheticaccgen}
   \begin{tabular}{l|c|c|c}
-  \textbf{ } & \textbf{Kernel Perceptron} & \textbf{Budget KP} & \textbf{Description KP}\\
+  \textbf{ } & \textbf{KP} & \textbf{Budget KP} & \textbf{Description KP}\\
   \hline
   \textbf{Average Training Accuracy} & 98.61\% & 98.61\% & 96.915\%\\
   \textbf{Average Testing Accuracy} & 98.58\% & 98.58\% & 96.87\%\\
@@ -116,12 +118,14 @@ A synthetic dataset was created specifically to test the performance of the Kern
  \end{center}
 \end{table}
 
+Using the generalization bounds as proven in Section \ref{Proofs}, the number of training examples, dimensionality of the data, and size of the support set can be input to determine if the observed generalization error compares to the calculated bound. Table \ref{tab:syntheticgencalc} shows the generalization bound for two values of eps, 0 and 1, as eps represents probability. Unfortunately, for both of these values, all the implementations have vacuous bounds far greater than 1. With the settings used in the above experiments, the calculated generalization bounds are unable to be compared to the observed generalization error. 
+
 \begin{table}[h!]
  \begin{center}
   \caption{Synthetic Generalization Bound Calculations}
   \label{tab:syntheticgencalc}
   \begin{tabular}{l|c|c|c}
-  \textbf{ } & \textbf{Kernel Perceptron} & \textbf{Budget KP} & \textbf{Description KP}\\
+  \textbf{ } & \textbf{KP} & \textbf{Budget KP} & \textbf{Description KP}\\
   \hline
   \textbf{Training Examples} & 1000 & 1000 & 1000\\
   \textbf{Dimensionality} & 3 & 3 & 3\\
@@ -131,6 +135,14 @@ A synthetic dataset was created specifically to test the performance of the Kern
   \end{tabular}
  \end{center}
 \end{table}
+
+Worse still is the fact that the Kernel Perceptron always produces vacuous bounds. Because all training examples are support vectors, the smallest possible training set is a single example. The smallest possible dimensionality of data is one dimensional. Therefore, the generalization bound for the smallest possible dataset of a single one-dimensional training example stored as a 32-bit floating point value is shown in Equation \ref{KPBoundBad}. This bound is calculated to be 1.84467E+19 for eps = 0 and 2.49650E+18 for eps = 1. The bound becomes even more vacuous as the dimensionality of the data and number of examples increases. Because of this, the Kernel Perceptron cannot be used to compare calculated generalization error to generalization error observed in experiments.
+
+\begin{equation} \label{KPBoundBad}
+ 2^{(m*n*32 + m*32)} * e^{-2*eps^{2}*m} = 2^{(1*1*32 + 1*32)} * e^{-2*eps^{2}*1} = 2^{64}*e^{-2eps^{2}}
+\end{equation}
+
+To determine if the Budget Kernel Perceptron and Description Kernel Perceptron produce nonvacuous bounds, different support set sizes and values of eps were input into their generalization bounds. Fortunately, with the settings listed in Table \ref{tab:syntheticlimitedgen}, nonvacuous bounds were found for both variants. The synthetic dataset was used to evaluate the effect of a limited budget for the Budget Kernel Perceptron and a limited number of mistakes for the Description Kernel Perceptron. Both implementations have a generalization bound of about 9\% for a three-dimensional dataset containing one thousand training examples and two support vectors or mistakes for Budget and Description, respectively. To produce these values, eps must be set to 0.301 for the Budget Kernel Perceptron and 0.282 for the Description Kernel Perceptron. The generalization error produced by these implementations with limited budget and mistakes is graphed in Figure \ref{SyntheticGenErr2Fig}. Overall, the training and testing accuracy for both implementations is far lower than the accuracy produced with larger support sets, but the difference between training and testing accuracy remains small. The greatest observed generalization error observed for the Budget Kernel Perceptron is 5.7\% and for the Description Kernel Perceptron is 4.8\%, well below the 9\% calculated bound, which validates the theoretical bound proven in Coq for these implementations.
 
 \begin{figure}[h]\label{SyntheticGenErr2Fig}
  \caption{Synthetic Generalization Error using Limited Budget and Mistakes}
@@ -160,17 +172,21 @@ A synthetic dataset was created specifically to test the performance of the Kern
  \end{center}
 \end{table}
 
-Timing results
+The runtimes of the three implmentations were also evaluated to compare training and testing performance. The runtime for each trial was tested five times to determine average training and testing. Figure \ref{SyntheticKernelTiming} shows the synthetic timing results for the Kernel Perceptron. All runtimes were around 200 seconds, with little variation between trials. The averages for each trial and their 95\% confidence intervals are listed in Table \ref{tab:synthetictiming}.
 
-\begin{figure}[h]\label{SyntheticKernelTiming}
+\begin{figure}[p]\label{SyntheticKernelTiming}
  \caption{Kernel Perceptron Synthetic Timing}
- \includegraphics[scale=0.9]{KernelSyntheticTiming}
+ \includegraphics[scale=0.8]{KernelSyntheticTiming}
 \end{figure}
 
-\begin{figure}[h]\label{SyntheticBudgetDesTiming}
+The Budget Kernel Perceptron and Description Kernel Perceptron execute much faster than the Kernel Perceptron because their models are significantly smaller. Figure \ref{SyntheticBudgetDesTiming} shows the synthetic timing results for these two implementaitons. The Budget Kernel Perceptron took around 0.35 seconds to train and test, while the Description Kernel Perceptron took around 0.29 seconds. The Description Kernel Perceptron has the smallest model of the three implementations, causing it to have the fastest runtime. Table \ref{tab:synthetictiming} shows the averages and confidence intervals for each trial.
+
+\begin{figure}[p]\label{SyntheticBudgetDesTiming}
  \caption{Budget and Description Kernel Perceptron Synthetic Timing}
- \includegraphics[scale=0.9]{BudgetDesSyntheticTiming}
+ \includegraphics[scale=0.8]{BudgetDesSyntheticTiming}
 \end{figure}
+
+The confidence intervals for the Kernel Perceptron trials are much larger than the Budget and Description Kernel Perceptron trials because the runtimes for the Kernel Perceptron vary by seconds, as opposed to hundredths of seconds for the Budget and Description Kernel Perceptrons. These runtimes show that it is possible for the Budget and Description Kernel Perceptrons to have the same or similar accuracy as the Kernel Perceptron while training and testing in a shorter amount of time. 
 
 \begin{table}[h!]
  \begin{center}
@@ -204,11 +220,9 @@ Timing results
 \end{table}
 
 \subsection{Iris Dataset Performance Results}\label{IrisResults}
-Description of Dataset
-\\Experimental setup and drivers
-\\Generalization error results
+The Iris Dataset \cite{Fis36} contains 150 examples of four-dimensional data which represents fifty members each of three Iris species: Iris Setosa, Iris Versicolour, and Iris Virginica. Iris Setsosa is linearly separable from Iris Versicolour and Iris Virginica when Iris Versicolour and Iris are combined into a single class. This dataset is not divided into a training set and a testing set, which is required for determing generalization error as the difference between training and testing accuracy. To divide this dataset into a training set and a testing set, a random number generator was used to place each example either into the training set or the testing set. Two splits were used for this division, one with roughly 50\% training examples (77) and 50\% testing examples (73), and another with roughly 75\% training examples (113) and 25\% testing examples (37). These ratios were chosen to see if an increased number of training examples also increases the training and testing accuracy.
 
-\begin{table}[h!]
+\begin{table}[p]
  \begin{center}
   \caption{Iris 50/50 Dataset Observed and Calculated Generalization Error}
   \label{tab:iris50gencalc}
@@ -230,7 +244,7 @@ Description of Dataset
  \end{center}
 \end{table}
 
-\begin{table}[h!]
+\begin{table}[p]
  \begin{center}
   \caption{Iris 75/25 Dataset Observed and Calculated Generalization Error}
   \label{tab:iris75gencalc}
@@ -252,11 +266,14 @@ Description of Dataset
  \end{center}
 \end{table}
 
-Timing results
+Once each training example was divided into separate training and testing files, each file was further formatted to replace the original labels of the dataset with Boolean values. Iris-setsosa was replaced with True, and both Iris-versicolour and Iris-virginica were replaced with False. A unique integer identifier was also added to the front of each example to conform to the specifications for file IO. With these preprocessing steps, the Iris data could be run by the Kernel Perceptron variants.
+\\The generalization error results for the two Iris datasets were found using the RunFile driver for each implementation. All implementations ran for 5 epochs. The Budget Kernel Perceptron limited the size of the support set 10\% of the training set, and the Description Kernel Perceptron was similarly limited to 10\% of the size of the training set for the number of mistakes. 
+\\The results for the 50/50 split of the Iris dataset are shown in Table \ref{tab:iris50gencalc}. All implementations had perfect training and testing accuracy, with no generalization error. However, none of the implementations had nonvacuous bounds for this dataset, as no setting of eps produced a bound less than 1. The results for the Iris 75/25 split are shown in Table \ref{tab:iris75gencalc}. All implementations again had perfect training and testing accuracy, with no generalization error, and no implementation had nonvacuous bounds.
+\\The timing results for the Iris datasets are shown in Figure \ref{IrisTiming}. As with the synthetic dataset, the Kernel Perceptron took significantly longer to train and test than the Budget and Description Kernel Perceptrons, with the Description Kernel Perceptron slightly faster to train and test than the Budget Kernel Perceptron. Table \ref{tab:iristabtiming} presents average runtimes and confidence intervals for the Iris datasets.
 
 \begin{figure}[h]\label{IrisTiming}
  \caption{Iris Data Set Timing}
- \includegraphics[scale=0.9]{IrisTiming}
+ \includegraphics[scale=0.8]{IrisTiming}
 \end{figure}
 
 \begin{table}[h!]
@@ -273,12 +290,12 @@ Timing results
 \end{table}
 
 \subsection{Sonar Mines vs. Rocks Dataset Performance Results}\label{SonarResults}
-Description of Dataset
-\\Data normalization
-\\Experimental setup and drivers
-\\Generalization error results
+The Sonar Mines vs. Rocks Dataset contains 208 examples of sixty-dimensional data, representing sonar pings of either underwater explosive mines or roughly cylindrical rocks. This dataset is linearly separable. Like the Iris dataset, the Sonar dataset is not divided into a training set and testing set. Using the same method as the Iris dataset, two Sonar datasets were created with a roughly 50/50 split training and testing (116/92) and a roughly  75/25 split (157/51). The Sonar datasets were further preprocessed by adding a unique integer identifier to the front of each example and changing the labels from M to True and R to False. 
+\\The values for each example in the original Sonar dataset are decimals ranging from 0 to 1. Based on Perceptron training in \cite{MGS17}, which stated that on the full dataset, their Perceptron took over 275,000 epochs to converge to a solution. Due to limitations on my machine used for performance experiments, it was not realistic to run my implementations for more than 10,000 epochs. Because of this limitation, the Sonar dataset was normalized from values from 0 to 1 to values between -1 and 1 to center the examples closer to the zero vector used at the start of training. The normalized data files were used for the generalization error and timing experiments described below. 
+\\Again, the generalization error results were found using the RunFile driver for each implementation. All implementations ran for 10,000 epochs. The Budget Kernel Perceptron was limited to 10\% of the training set and the Description Kernel Perceptron to 10\% of the training set as the number of mistakes.
+\\The results for the 50/50 split of the Sonar dataset are shown in Table \ref{tab:sonar50gencalc} and for the 75/25 split are in Table \ref{tab:sonar75gencalc}. Only the Kernel Perceptron had results with higher than about 50\% accuracy for both Sonar Datasets. The results for the Budget Kernel Perceptron and Description Kernel Perceptron were disappointing due to the fact that the Sonar datasets violate their underlying assumptions. To produce a model with high accuracy, thousands of misclassifications must be made to incrementally move the hyperplane. Because the dataset contains a maximum of just over two hundred examples, variants that rely on making a number of mistakes significantly smaller than the number of training examples are bound to have poor performance. The accuracies of the Budget and Description Kernel Perceptron only increase when the number of misclassifications or support vectors is set to the minimum necessary, which means that such a setting will have much worse generalization error compared to the Kernel Perceptron. The Sonar datasets also do not produce nonvacuous bounds due to the size of the training set and the dimensionality of the data.
 
-\begin{table}[h!]
+\begin{table}[ht]
  \begin{center}
   \caption{Sonar 50/50 Dataset Observed and Calculated Generalization Error}
   \label{tab:sonar50gencalc}
@@ -301,7 +318,7 @@ Description of Dataset
  \end{center}
 \end{table}
 
-\begin{table}[h!]
+\begin{table}[ht]
  \begin{center}
   \caption{Sonar 75/25 Dataset Observed and Calculated Generalization Error}
   \label{tab:sonar75gencalc}
@@ -324,9 +341,9 @@ Description of Dataset
  \end{center}
 \end{table}
 
-Timing results
+The timing results for the Sonar Datasets are given in Table \ref{tab:sonartabtiming}. These results were found by running 10,000 epochs for each implementation, and the confidence intervals for each implementation are also listed.
 
-\begin{table}[h!]
+\begin{table}[ht]
  \begin{center}
   \caption{Sonar Average Runtimes and Confidence Intervals}
   \label{tab:sonartabtiming}
