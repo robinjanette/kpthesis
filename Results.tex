@@ -98,12 +98,14 @@ A synthetic dataset was created specifically to test the performance of the Kern
 
 \begin{figure}[h]\label{SyntheticGenErrFig}
  \caption{Synthetic Generalization Error}
- \includegraphics[scale=0.9]{SyntheticGenErr}
+ \begin{center}
+  \includegraphics[scale=0.7]{SyntheticGenErr}
+ \end{center}
 \end{figure}
 
 Table \ref{tab:avesyntheticaccgen} provides statistics across the synthetic trials for average training and testing accuracy and generalization error, along with the 95\% confidence interval for each implementation. Because the Kernel Perceptron and Budget Kernel Perceptron had the same performance across all trials, their averages and confidence interval are the same. The Description Kernel Perceptron's averages reflect its tendency to have lower accuracy and increased generalization error, and its confidence interval is larger than the other two implementations. For many of these trials, the Description Kernel Perceptron would require several more mistakes to have the same performance as the Kernel Perceptron and Budget Kernel Perceptron.
 
-\begin{table}[h!]
+\begin{table}[h]
  \begin{center}
   \caption{Average Synthetic Generalization Error and Confidence Intervals}
   \label{tab:avesyntheticaccgen}
@@ -120,7 +122,7 @@ Table \ref{tab:avesyntheticaccgen} provides statistics across the synthetic tria
 
 Using the generalization bounds as proven in Section \ref{Proofs}, the number of training examples, dimensionality of the data, and size of the support set can be input to determine if the observed generalization error compares to the calculated bound. Table \ref{tab:syntheticgencalc} shows the generalization bound for two values of eps, zero and one, as eps represents probability. Unfortunately, for both of these values, all the implementations have vacuous bounds far greater than one. With the settings used in the above experiments, the calculated generalization bounds are unable to be compared to the observed generalization error. 
 
-\begin{table}[h!]
+\begin{table}[h]
  \begin{center}
   \caption{Synthetic Generalization Bound Calculations}
   \label{tab:syntheticgencalc}
@@ -146,10 +148,12 @@ To determine if the Budget Kernel Perceptron and Description Kernel Perceptron p
 
 \begin{figure}[h]\label{SyntheticGenErr2Fig}
  \caption{Synthetic Generalization Error using Limited Budget and Mistakes}
- \includegraphics[scale=0.9]{SyntheticGenLimit}
+ \begin{center}
+  \includegraphics[scale=0.9]{SyntheticGenLimit} 
+ \end{center}
 \end{figure}
 
-\begin{table}[h!]
+\begin{table}[h]
  \begin{center}
   \caption{Synthetic Generalization Error and Confidence Intervals using Limited Budget and Mistakes}
   \label{tab:syntheticlimitedgen}
@@ -176,19 +180,19 @@ The runtimes of the three implmentations were also evaluated to compare training
 
 \begin{figure}[p]\label{SyntheticKernelTiming}
  \caption{Kernel Perceptron Synthetic Timing}
- \includegraphics[scale=0.8]{KernelSyntheticTiming}
+ \includegraphics[scale=0.7]{KernelSyntheticTiming}
 \end{figure}
 
 The Budget Kernel Perceptron and Description Kernel Perceptron execute much faster than the Kernel Perceptron because their models are significantly smaller. Figure \ref{SyntheticBudgetDesTiming} shows the synthetic timing results for these two implementaitons. The Budget Kernel Perceptron took around 0.35 seconds to train and test, while the Description Kernel Perceptron took around 0.29 seconds. The Description Kernel Perceptron has the smallest model of the three implementations, causing it to have the fastest runtime. Table \ref{tab:synthetictiming} shows the averages and confidence intervals for each trial.
 
 \begin{figure}[p]\label{SyntheticBudgetDesTiming}
  \caption{Budget and Description Kernel Perceptron Synthetic Timing}
- \includegraphics[scale=0.8]{BudgetDesSyntheticTiming}
+ \includegraphics[scale=0.7]{BudgetDesSyntheticTiming}
 \end{figure}
 
 The confidence intervals for the Kernel Perceptron trials are much larger than the Budget and Description Kernel Perceptron trials because the runtimes for the Kernel Perceptron vary by seconds, as opposed to hundredths of seconds for the Budget and Description Kernel Perceptrons. These runtimes show that it is possible for the Budget and Description Kernel Perceptrons to have the same or similar accuracy as the Kernel Perceptron while training and testing in a shorter amount of time. 
 
-\begin{table}[h!]
+\begin{table}[p]
  \begin{center}
   \caption{Synthetic Average Runtimes and Confidence Intervals}
   \label{tab:synthetictiming}
@@ -273,10 +277,12 @@ Once each training example was divided into separate training and testing files,
 
 \begin{figure}[h]\label{IrisTiming}
  \caption{Iris Data Set Timing}
- \includegraphics[scale=0.8]{IrisTiming}
+ \begin{center}
+  \includegraphics[scale=0.6]{IrisTiming}
+ \end{center}
 \end{figure}
 
-\begin{table}[h!]
+\begin{table}[h]
  \begin{center}
   \caption{Iris Average Runtimes and Confidence Intervals}
   \label{tab:iristabtiming}
