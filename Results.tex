@@ -96,7 +96,7 @@ A synthetic dataset was created specifically to test the performance of the Kern
 \\Because the Kernel Perceptron variants are all deterministic, the generalization error results were found using the RunFile driver for each implementation. All implementations ran for five epochs. The Budget Kernel Perceptron limited the size of the support set to 100 examples, 10\% of the training set, and the Description Kernel Perceptron was similarly limited to 100 mistakes. 
 \\The generalization error of the three implementations is graphed in Figure \ref{SyntheticGenErrFig}. The Kernel Perceptron and Budget Kernel Perceptron have the same training and testing error for all 20 synthetic trials, while the Description Kernel Perceptron tends to have slightly worse training and testing accuracy and increased generalization error on some trials. The greatest observed generalization error is 1.4\% for the Description Kernel Perceptron in Trial 8.
 
-\begin{figure}[h]
+\begin{figure}[p]
  \caption{Synthetic Generalization Error}
  \label{SyntheticGenErrFig}
  \begin{center}
@@ -106,7 +106,7 @@ A synthetic dataset was created specifically to test the performance of the Kern
 
 Table \ref{tab:avesyntheticaccgen} provides statistics across the synthetic trials for average training and testing accuracy and generalization error, along with the 95\% confidence interval for each implementation. Because the Kernel Perceptron and Budget Kernel Perceptron had the same performance across all trials, their averages and confidence interval are the same. The Description Kernel Perceptron's averages reflect its tendency to have lower accuracy and increased generalization error, and its confidence interval is larger than the other two implementations. For many of these trials, the Description Kernel Perceptron would require several more mistakes to have the same performance as the Kernel Perceptron and Budget Kernel Perceptron.
 
-\begin{table}[h]
+\begin{table}[p]
  \begin{center}
   \caption{Average Synthetic Generalization Error and Confidence Intervals}
   \label{tab:avesyntheticaccgen}
@@ -123,7 +123,7 @@ Table \ref{tab:avesyntheticaccgen} provides statistics across the synthetic tria
 
 Using the generalization bounds as proven in Section \ref{Proofs}, the number of training examples, dimensionality of the data, and size of the support set can be input to determine if the observed generalization error compares to the calculated bound. Table \ref{tab:syntheticgencalc} shows the generalization bound for two values of $eps$, zero and one, as $eps$ represents a probability. Unfortunately, for both of these values, all the implementations have vacuous bounds far greater than one. With the settings used in the above experiments, the calculated generalization bounds are unable to be compared to the observed generalization error. 
 
-\begin{table}[h]
+\begin{table}[p]
  \begin{center}
   \caption{Synthetic Generalization Bound Calculations}
   \label{tab:syntheticgencalc}
@@ -147,7 +147,7 @@ Worse still is the fact that the Kernel Perceptron always produces vacuous bound
 
 To determine if the Budget Kernel Perceptron and Description Kernel Perceptron produce nonvacuous bounds, different support set sizes and values of eps were input into their generalization bounds. Fortunately, with the settings listed in Table \ref{tab:syntheticlimitedgen}, nonvacuous bounds were found for both variants. The synthetic dataset was used to evaluate the effect of a limited budget for the Budget Kernel Perceptron and a limited number of mistakes for the Description Kernel Perceptron. Both implementations have a generalization bound of about 9\% for a three-dimensional dataset containing one thousand training examples and two support vectors or mistakes for Budget and Description, respectively. To produce these values, $eps$ must be set to 0.301 for the Budget Kernel Perceptron and 0.282 for the Description Kernel Perceptron. The generalization error produced by these implementations with limited budget and mistakes is graphed in Figure \ref{SyntheticGenErr2Fig}. Overall, the training and testing accuracy for both implementations is far lower than the accuracy produced with larger support sets, but the difference between training and testing accuracy remains small. The greatest observed generalization error observed for the Budget Kernel Perceptron is 5.7\% and for the Description Kernel Perceptron is 4.8\%, well below the 9\% calculated bound, which validates the theoretical bound proven in Coq for these implementations.
 
-\begin{figure}[h]
+\begin{figure}[p]
  \caption{Synthetic Generalization Error using Limited Budget and Mistakes}
  \label{SyntheticGenErr2Fig}
  \begin{center}
@@ -155,7 +155,7 @@ To determine if the Budget Kernel Perceptron and Description Kernel Perceptron p
  \end{center}
 \end{figure}
 
-\begin{table}[h]
+\begin{table}[p]
  \begin{center}
   \caption{Synthetic Generalization Error and Confidence Intervals using Limited Budget and Mistakes}
   \label{tab:syntheticlimitedgen}
@@ -227,7 +227,50 @@ The confidence intervals for the Kernel Perceptron trials are much larger than t
  \end{center}
 \end{table}
 
-INSERT PYTHON BUDGET TIMING ANALYSIS HERE
+The timing analysis of the Kernel Perceptron variants on the same datasets demonstrates how the runtimes for training and testing compare against implementations in the same language. However, because Haskell is not commonly used for machine learning tasks, the previous timing results do not indicate how the Haskell implementations compare against implementations in another language. Python is currently one of the languages of choice for machine learning research and applications because of libraries such as Numpy and Scipy that optimize scientific computing and machine learning algorithms. To compare the performance of Haskell to Python, the Budget Kernel Perceptron was chosen to be implemented in Python because it tends to have higher accuracy than the Description Kernel Perceptron with less required resources than the Kernel Perceptron. 
+\\Two unverified Python scripts were written to be run on synthetic data. The first script, ``BudgetPython.py'', is close to a direct translation of the Haskell implementation into Python without modifications to improve performance in Python. This script will be referred to as the naive Python implementation. Many of the function and variable names were kept the same and the overall data structures and steps are the same. However, several changes were necessary. For example, the Haskell implementation uses 32-bit floating point values, but the naive Python implementation uses the built-in float type, which is 64-bit. Instead of recursion or folds, the naive Python implementation uses for loops to iterate through the parameters or the training and testing sets. Finally, the Python scripts do not use global variables, which are used in the Haskell driver files to specify the size and shape of the training set, so that multiple shapes and sizes of data sets can be run by the same functions. These changes simplify the Budget Kernel Perceptron implementation while not changing many of the underlying functions and data structures.
+\\The second script, ``BudgetPythonNumpy.py'', improves on the naive Python implementation by using Numpy data structures and functions. Several types were modified to be more compatible with Numpy, such as the type of paramters. Instead of a list of tuples, where each tuple contains the float32 value, data, and label for a support vector, the Numpy Python implementation uses a tuple containing three Numpy arrays, so that the float32 values, data, and labels are in separate arrays. This change to the structure of the parameters makes vectorization much easier and facilitated the use of Numpy functions for computation. The Numpy Python and naive Python implementations produce the same results for accuracy and generalization error, but through the use of different calculations.
+\\For both scripts, the timing procedure in Python was the same as in Haskell. For each trial of the synthetic dataset, the file input to read and format the dataset was not timed, but training and testing were timed five times to average the results. For each trial, the training and testing accuracy was compared to the Haskell implementation to ensure that all three Budget Kernel Perceptron implementations produced the same generalization error.
+
+\begin{figure}[p]
+ \caption{Python and Haskell Budget Kernel Perceptron Synthetic Timing}
+ \label{SyntheticPythonHaskellTiming}
+ \includegraphics[scale=0.9]{PythonSyntheticTiming}
+\end{figure}
+
+\begin{table}[p]
+ \begin{center}
+  \caption{Python Budget Kernel Perceptron Runtimes and Confidence Intervals}
+  \label{tab:pythontiming}
+  \begin{tabular}{l|c|c|c|c|c|c}
+  \textbf{Trial} & \textbf{Budget} & \textbf{95\% CI} & \textbf{Naive} & \textbf{95\% CI} & \textbf{Numpy} & \textbf{95\% CI}\\
+  \textbf{} & \textbf{Haskell} & \textbf{} & \textbf{Python} & \textbf{} & \textbf{Python}\\
+  \hline
+  \textbf{1} & 0.3498 & 0.05499 & 0.82 & 0.00139 & 0.4266 & 0.00380\\
+  \textbf{2} & 0.3436 & 0.05116 & 0.8216 & 0.00220 & 0.4024 & 0.00078\\
+  \textbf{3} & 0.345 & 0.05245 & 0.819 & 0.00107 & 0.4088 & 0.00073\\
+  \textbf{4} & 0.3456 & 0.05263 & 0.8198 & 0.00169 & 0.4208 & 0.00073\\
+  \textbf{5} & 0.3468 & 0.05351 & 0.8216 & 0.00274 & 0.4236 & 0.00048\\
+  \textbf{6} & 0.3504 & 0.05567 & 0.822 & 0.00107 & 0.4218 & 0.00073\\
+  \textbf{7} & 0.3484 & 0.05175 & 0.8206 & 0.00118 & 0.4218 & 0.00114\\
+  \textbf{8} & 0.3532 & 0.05527 & 0.8248 & 0.00209 & 0.4192 & 0.00243\\
+  \textbf{9} & 0.3482 & 0.05479 & 0.82 & 0.00107 & 0.4146 & 0.00078\\
+  \textbf{10} & 0.3502 & 0.05332 & 0.8232 & 0.00157 & 0.4184 & 0.00048\\
+  \textbf{11} & 0.3502 & 0.05332 & 0.822 & 0.00196 & 0.421 & 0.00062\\
+  \textbf{12} & 0.3486 & 0.05215 & 0.8206 & 0.00147 & 0.4188 & 0.00114\\
+  \textbf{13} & 0.3492 & 0.05331 & 0.8232 & 0.00293 & 0.4326 & 0.00048\\
+  \textbf{14} & 0.3444 & 0.05226 & 0.819 & 0.00164 & 0.396 & 0.00206\\
+  \textbf{15} & 0.3462 & 0.05384 & 0.8234 & 0.00202 & 0.4136 & 0.00078\\
+  \textbf{16} & 0.358 & 0.05232 & 0.8236 & 0.00237 & 0.4104 & 0.00048\\
+  \textbf{17} & 0.3492 & 0.05333 & 0.8208 & 0.00073 & 0.4204 & 0.00133\\
+  \textbf{18} & 0.3492 & 0.05381 & 0.82 & 0.00164 & 0.424 & 0.00062\\
+  \textbf{19} & 0.3476 & 0.05410 & 0.818 & 0.00186 & 0.4226 & 0.00048\\
+  \textbf{20} & 0.3498 & 0.05351 & 0.819 & 0.00186 & 0.4222 & 0.00073\\
+  \end{tabular}
+ \end{center}
+\end{table}
+
+Figure \ref{SyntheticPythonHaskellTiming} and Table \ref{tab:pythontiming} display the results of timing the Python implementations on the same datasets as the Budget Haskell implementation. The Haskell implementation was faster than both of the Python implementations training on the same synthetic datasets. The Numpy Python implementation was faster than the naive Python due to vectorization and Numpy functions, although the Numpy Python implementation was more variable in times across trials than the naive Python implementation. The Python implementations validate that our Haskell implementations are not only comparable to the runtimes of Python implementations, but are slightly faster.
 
 \subsection{Iris Dataset Performance Results}\label{IrisResults}
 The Iris Dataset \cite{Fis36} contains 150 examples of four-dimensional data which represents 50 members each of three Iris species: Iris Setosa, Iris Versicolour, and Iris Virginica. Iris Setsosa is linearly separable from Iris Versicolour and Iris Virginica when Iris Versicolour and Iris are combined into a single class. This dataset is not divided into a training set and a testing set, which is required for determing generalization error as the difference between training and testing accuracy. To divide this dataset into a training set and a testing set, a random number generator was used to place each example either into the training set or the testing set. Two splits were used for this division, one with roughly 50\% training examples (77) and 50\% testing examples (73), and another with roughly 75\% training examples (113) and 25\% testing examples (37). These ratios were chosen to see if an increased number of training examples also increases the training and testing accuracy.
@@ -395,7 +438,7 @@ As with the bound by Mohri and Rostamizadeh, Cesa-Bianchi, Conconi, and Gentile 
 \\These bounds do, however, show that generalization is an important performance metric, although the exact formulation may vary even for the same or similar algorithms. Our generalization bound calculations are simpler to calculate and rely on fewer variables. 
 \\Some trends between datasets and implementations are shown in the generalization and timing analyses. Many of the generalization bounds calculated in this thesis are vacuous. Nonvacuous bounds rely on a very small support set compared to the full training set. Unfortunately, the computer I have had to use for my research is not powerful enough to run experiments with a larger training set size to examine more nonvacuous bounds due to its age and computational capabilities. Vacuous bounds provide no real guarantee for performance, even though the theorems for the generalization bounds have been proved in Coq. Future work to examine the nonvacuous bounds of the Budget and Description Kernel Perceptrons could determine guidelines for the dimensions and size of datasets that will provide nonvacuous bounds.
 \\However, the results of the timing analysis, especially for the synthetic datasets, shows that the Budget and Description Kernel Perceptrons are significantly faster to run when the size of the budget or number of mistakes are a fraction of the full size of the dataset. Storing fewer nonessential support vectors saves computation time and resources compared to the Kernel Perceptron.
-\\INSERT PYTHON BUDGET TIMING VS HASKELL TIMING
+\\Timing results with the Budget Python implementations also demonstrate that the Haskell implementations have slightly faster run times than Python implementations, even the Python implementation which was optimized using Numpy functions and data structures. While Haskell is not often used for machine learning, it has been demonstrated to be viable for running machine learning algorithms. 
 \\The Sonar dataset highlights that the Budget and Description Kernel Perceptrons rely on the either a small number of necessary support vectors or a small number of mistakes compared to the size of the training set. In cases where neither of these assumptions are true, the Budget and Description Kernel Perceptrons will have worse accuracy compared to the Kernel Perceptron. The Kernel Perceptron works best for datasets with a high number of necessary support vectors of many mistakes compared to the size of the training set. Because of this, the Budget and Description Kernel Perceptrons are not always improvements on the performance of the Kernel Perceptron.
 \\Finally, the Iris dataset validates that the Kernel Perceptron variants can perform well on a real-world dataset. Because few misclassifications are necessary to produce a hyperplane with perfect accuracy, all variants of the Kernel Perceptron had high performance on the Iris dataset. Overall, these results show that the variants of the Kernel Perceptron can perform well on real and synthetic data.
 \section{Chapter Summary}\label{ResultsChapterSummarySection}
