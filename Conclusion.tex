@@ -1,15 +1,6 @@
 \chapter{Conclusions}\label{ConclusionsChapter}
 
-Limitations to current MLCert research
-\\O Always vacuous bounds for Kernel Perceptron
-\\O Bounds for Budget/Description require many many more training examples than support set
+The previous chapters of this thesis outline the methodology and results of verifying the Kernel Perceptron family of algorithms in the MLCert framework. The main contributions of this work include Coq implementations of the Kernel Perceptron, Budget Kernel Perceptron, and Description Kernel Perceptron with proofs in Coq of their generalization error. The accuracy, generalization error, and runtime of the Coq implementations were tested through extraction into Haskell. The Haskell Budget Kernel Perceptron's timing was also compared to two Python versions to demonstrate the efficiency of the Haskell implementations against implementations in a language used by most machine learning researchers.
+\\However, there are limitations to the Kernel Perceptron implementations. Because the calculation of generalization error relies on the cardinality of the parameter space and its relationship to the size of the training set, the Kernel Perceptron will always produce vacuous bounds, regardless of the dimensionality of the data. Therefore, the generalization proof in Coq for the Kernel Perceptron does not guarantee its generalization performance. In contrast, the Budget Kernel Perceptron and Description Kernel Perceptron can produce nonvacuous bounds, as long as the size of the support set is sufficiently smaller than the number of training examples. Experimental tests of the Budget and Description Kernel Perceptrons with limited numbers of support vectors or mistakes, respectively, had much lower accuracy, but their generalization error was lower than the calculated generalization bound. Unfortunately, I was unable to test larger datasets due to limitations on my machine or determine if both high accuracy and low generalization could be achieved on larger datasets.
+\\Future work for this research in MLCert could involve the implementation of additional machine learning algorithms to evaluate their generalization error. There are other variants of the Perceptron algorithm that could be investigated. Modifications to the Budget and Description Kernel Perceptrons may impact or improve the generalization error of these algorithms. For the Budget Kernel Perceptron, the parameter update procedure could be improved to remove the support vector with the least impact on the hyperplane, which may not be the oldest support vector. The Description Kernel Perceptron could be improved by changes to the MLCert framework itself. The current implementation will run for the specified number of epochs, even if the maximum number of mistakes is reached in the first epoch. Modifying some of the MLCert functions could make it possible to stop training early, improving the timing of the Description Kernel Perceptron. Fortunately, MLCert can be customized in a variety of ways to make future exploration of machine learning algorithms possible.
 
-Future Work
-\\O Implement additional machine learning algorithms
-\\O Modify existing algorithms to improve performance/generalization further
-
-Contributions
-\\O Haskell implementation of Kernel Perceptron, Budget Kernel Perceptron, and Description Kernel Perceptron
-\\O Python implementations of Budget Kernel Perceptron
-\\O Generalization bound proofs and experimental results
-\\O Timing results that show comparability to more standard implementations
