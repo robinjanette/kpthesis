@@ -332,19 +332,6 @@ Once each training example was divided into separate training and testing files,
  \end{center}
 \end{figure}
 
-\begin{table}[h]
- \begin{center}
-  \caption{Iris Average Runtimes (Seconds) and Confidence Intervals}
-  \label{tab:iristabtiming}
-  \begin{tabular}{l|c|c|c|c|c|c}
-  \textbf{Trial} & \textbf{KP} & \textbf{95\% CI} & \textbf{Budget KP} & \textbf{95\% CI} & \textbf{Description KP} & \textbf{95\% CI}\\
-  \hline
-  \textbf{Iris 50/50} & 0.0872 & 0.00342 & 0.005 & 0.00392 & 0.0042 & 0.00431\\
-  \textbf{Iris 75/25} & 0.2208 & 0.00563 & 0.0076 & 0.00462 & 0.0068 & 0.00501\\
-  \end{tabular}
- \end{center}
-\end{table}
-
 \subsection{Sonar Mines vs. Rocks Dataset Performance Results}\label{SonarResults}
 The Sonar Mines vs. Rocks Dataset contains 208 examples of 60-dimensional data, representing sonar pings of either underwater explosive mines or roughly cylindrical rocks. This dataset is linearly separable. Like the Iris dataset, the Sonar dataset is not divided into a training set and testing set. Using the same method as the Iris dataset, two Sonar datasets were created with a roughly 50/50 split training and testing (116/92) and a roughly  75/25 split (157/51). The Sonar datasets were further preprocessed by adding a unique integer identifier to the front of each example and changing the labels from M to True and R to False. 
 \\The values for each example in the original Sonar dataset are decimals ranging from zero to one. The authors of \cite{MGS17} stated that on the full Sonar dataset, their Perceptron took over 275,000 epochs to converge to a solution. Due to limitations on my machine used for performance experiments, it was not realistic to run my implementations for more than 10,000 epochs. Because of this limitation, the Sonar dataset was normalized from values from zero to one to values between negative one and one to center the examples closer to the zero vector used at the start of training. The normalized data files were used for the generalization error and timing experiments described below. 
@@ -399,12 +386,25 @@ The Sonar Mines vs. Rocks Dataset contains 208 examples of 60-dimensional data, 
 
 The timing results for the Sonar Datasets are given in Table \ref{tab:sonartabtiming}. These results were found by running 10,000 epochs for each implementation, and the confidence intervals for each implementation are also listed.
 
+\begin{table}[h]
+ \begin{center}
+  \caption{Iris Average Runtimes (Seconds) and Confidence Intervals}
+  \label{tab:iristabtiming}
+  \begin{tabular}{l|c|c|c|c|c|c}
+  \textbf{Trial} & \textbf{KP} & \textbf{95\% CI} & \textbf{Budget KP} & \textbf{95\% CI} & \textbf{Description KP} & \textbf{95\% CI}\\
+  \hline
+  \textbf{Iris 50/50} & 0.0872 & 0.00342 & 0.005 & 0.00392 & 0.0042 & 0.00431\\
+  \textbf{Iris 75/25} & 0.2208 & 0.00563 & 0.0076 & 0.00462 & 0.0068 & 0.00501\\
+  \end{tabular}
+ \end{center}
+\end{table}
+
 \begin{table}[ht]
  \begin{center}
   \caption{Sonar Average Runtimes (Seconds) and Confidence Intervals}
   \label{tab:sonartabtiming}
   \begin{tabular}{l|c|c|c|c|c|c}
-  \textbf{Trial} & \textbf{KP} & \textbf{95\% CI} & \textbf{Budget KP} & \textbf{95\% CI} & \textbf{Description KP} & \textbf{95\% CI}\\
+  \textbf{Trial} & \textbf{KP} & \textbf{95\%CI} & \textbf{Budget KP} & \textbf{95\%CI} & \textbf{Description KP} & \textbf{95\%CI}\\
   \hline
   \textbf{Sonar 50/50} & 1045.839 & 1.49470 & 79.0278 & 2.06799 & 66.1688 & 1.28507\\
   \textbf{Sonar 75/25} & 2121.471 & 6.43889 & 138.6656 & 4.08308 & 121.6616 & 3.08207\\
@@ -437,7 +437,39 @@ Mohri and Rostamizadeh do not directly give generalization bounds for the Kernel
 As with the bound by Mohri and Rostamizadeh, Cesa-Bianchi, Conconi, and Gentile define their bound in terms of minimizing $\hat{H}$ from the full set of hypotheses found during training. Again, our generalization bound cannot be directly compared to the above bound because we do not store past hypotheses. Additionally, as our implementations do not use the dual kernel, the kernelization and kernel space described in this paper do not directly correlate to our kernel and parameter spaces.
 \\These bounds do, however, show that generalization is an important performance metric, although the exact formulation may vary even for the same or similar algorithms. Our generalization bound calculations are simpler to calculate and rely on fewer variables. 
 \\Some trends between datasets and implementations are shown in the generalization and timing analyses. Many of the generalization bounds calculated in this thesis are vacuous. Nonvacuous bounds rely on a very small support set compared to the full training set. Unfortunately, the computer I have had to use for my research is not powerful enough to run experiments with a larger training set size to examine more nonvacuous bounds due to its age and computational capabilities. Vacuous bounds provide no real guarantee for performance, even though the theorems for the generalization bounds have been proved in Coq. Future work to examine the nonvacuous bounds of the Budget and Description Kernel Perceptrons could determine guidelines for the dimensions and size of datasets that will provide nonvacuous bounds.
-\\However, the results of the timing analysis, especially for the synthetic datasets, shows that the Budget and Description Kernel Perceptrons are significantly faster to run when the size of the budget or number of mistakes are a fraction of the full size of the dataset. Storing fewer nonessential support vectors saves computation time and resources compared to the Kernel Perceptron.
+\\MLCert uses 32-bit floating point values to represent data, matching precision in Haskell. Although the use of fewer bits would lower the accuracy of the model, 8-bit or 16-bit floating point representations would have tighter generalization because the cardinality of the parameters would significantly decrease. With an 8-bit floating point representation, the Kernel Perceptron's generalization bound is shown in Equation \ref{KPBound8} and the Budget Kernel Perceptron's bound follows in Equation \ref{KPBBound8}.
+
+\begin{equation} \label{KPBound8}
+ 2^{(m*n*32 + m*32)} * e^{-2*eps^{2}*m}
+\end{equation}
+
+\begin{equation} \label{KPBBound8}
+ 2^{(8*(S sv) + (1 + n * 8)*(S sv))} * e^{-2*eps^{2}*m}
+\end{equation}
+
+Even with an 8-bit floating point representation, the Kernel Perceptron's generalization bound is still vacuous for all datasets. Equation \ref{KPBoundBad2} shows the calculation for the Kernel Perceptron's generalization bound on the smallest possible dataset of a single, one-dimensional example. With the two extreme values of $\mathit{eps}$ of 0.001 and 1, the Kernel Perceptron's bounds are 65,535.9 and 8,869.3, respectively. A comparison of the generalization bounds of the Budget Kernel Perceptron with 32-bit and 8-bit precision are detailed in Table \ref{tab:syntheticgencalc8}. The Budget Kernel Perceptron has nonvacuous bounds on the synthetic dataset as long as the training set is much larger than the support set, as shown by the limited budget experiments. However, the use of 8-bit precision would allow for a larger budget of support vectors with a nonvacuous bound. For example, with eight support vectors and $\mathit{eps}$ set to 0.304, the 8-bit Budget calculated generalization bound is 15.86\%. In the limited budget experiments, the support set must be limited to two 32-bit support vectors to calculate nonvacuous bounds.
+
+\begin{equation} \label{KPBoundBad2}
+ 2^{(m*n*8 + m*8)} * e^{-2*eps^{2}*m} = 2^{(1*1*8 + 1*8)} * e^{-2*eps^{2}*1} = 2^{16}*e^{-2eps^{2}}
+\end{equation}
+
+\begin{table}[p]
+ \begin{center}
+  \caption{Synthetic Generalization Bound Calculations, 32-bit versus 8-bit Budget}
+  \label{tab:syntheticgencalc8}
+  \begin{tabular}{l|c|c}
+  \textbf{ } & \multicolumn{2}{c}{\textbf{Budget KP}} \\\hline
+  \textbf{Training Examples} & \multicolumn{2}{|c}{1000}\\
+  \textbf{Dimensionality} & \multicolumn{2}{|c}{3}\\
+  \textbf{Support Vectors} & \multicolumn{2}{|c}{100}\\\hline
+  \textbf{Precision} & 32-bit & 8-bit\\
+  \textbf{eps = 0.001} & 1.93230E+3883 & 2.50102E+993\\
+  \textbf{eps = 1} & 4.98862E+3014 & 6.45687E+124\\
+  \end{tabular}
+ \end{center}
+\end{table}
+
+The results of the timing analysis, especially for the synthetic datasets, shows that the Budget and Description Kernel Perceptrons are significantly faster to run when the size of the budget or number of mistakes are a fraction of the full size of the dataset. Storing fewer nonessential support vectors saves computation time and resources compared to the Kernel Perceptron.
 \\Timing results with the Budget Python implementations also demonstrate that the Haskell implementations have slightly faster run times than Python implementations, even the Python implementation which was optimized using Numpy functions and data structures. While Haskell is not often used for machine learning, it has been demonstrated to be viable for running machine learning algorithms. 
 \\The Sonar dataset highlights that the Budget and Description Kernel Perceptrons rely on the either a small number of necessary support vectors or a small number of mistakes compared to the size of the training set. In cases where neither of these assumptions is true, the Budget and Description Kernel Perceptrons will have worse accuracy compared to the Kernel Perceptron. The Kernel Perceptron works best for datasets with a high number of necessary support vectors of many mistakes compared to the size of the training set. Because of this, the Budget and Description Kernel Perceptrons are not always improvements on the performance of the Kernel Perceptron.
 \\Finally, the Iris dataset validates that the Kernel Perceptron variants can perform well on a real-world dataset. Because few misclassifications are necessary to produce a hyperplane with perfect accuracy, all variants of the Kernel Perceptron had high performance on the Iris dataset. Overall, these results show that the variants of the Kernel Perceptron can perform well on real and synthetic data.
